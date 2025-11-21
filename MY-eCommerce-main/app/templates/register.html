@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white text-center py-3">
+          <h3 class="mb-0"><i class="bi bi-person-plus-fill"></i> Create Your Account</h3>
+        </div>
+
+        <div class="card-body p-4">
+          <!-- Display Flash Messages -->
+          
+
+          <form method="POST" action="{{ url_for('register') }}">
+            <div class="row g-3">
+
+              <div class="col-md-6">
+                <label for="firstName" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="firstName" name="firstName" required>
+              </div>
+
+              <div class="col-md-6">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="lastName" name="lastName" required>
+              </div>
+
+              <div class="col-12">
+                <label for="phone" class="form-label">Phone</label>
+                <input type="tel" class="form-control" id="phone" name="phone" placeholder="+92XXXXXXXXXX" required>
+              </div>
+
+              <div class="col-12">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="yourname@gmail.com" required>
+              </div>
+
+              <div class="col-12">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required minlength="6">
+              </div>
+
+              <div class="col-md-6">
+                <label for="country" class="form-label">Country</label>
+                <input type="text" class="form-control" id="country" name="country" required>
+              </div>
+
+              <div class="col-md-6">
+                <label for="province" class="form-label">Province</label>
+                <input type="text" class="form-control" id="province" name="province" required>
+              </div>
+
+              <div class="col-md-6">
+                <label for="city" class="form-label">City</label>
+                <input type="text" class="form-control" id="city" name="city" required>
+              </div>
+
+              <div class="col-12">
+                <label for="address" class="form-label">Full Address</label>
+                <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+              </div>
+
+              <div class="col-md-6">
+                <label for="zip" class="form-label">ZIP Code</label>
+                <input type="text" class="form-control" id="zip" name="zip" required pattern="^\d{5}$">
+              </div>
+
+              <div class="col-12 mt-3">
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="bi bi-check-circle"></i> Register
+                </button>
+              </div>
+
+            </div>
+          </form>
+
+          <div class="text-center mt-3">
+            <p>Already have an account? <a href="{{ url_for('login') }}" class="text-decoration-none text-primary">Login</a></p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

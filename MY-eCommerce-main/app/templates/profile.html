@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block body %}
+
+<!-- ===== PROFILE SECTION ===== -->
+<section class="container my-5">
+  <div class="card shadow-lg">
+    <div class="card-header bg-primary text-white text-center">
+      <h3 class="mb-0"><i class="bi bi-person-lines-fill"></i> User Profile</h3>
+    </div>
+
+    <div class="card-body p-4">
+      <div class="row g-4">
+        <!-- Profile Photo -->
+        <div class="col-lg-4 text-center">
+          <img
+            src="/static/img/pro.jpg"
+            alt="User Photo"
+            class="rounded-circle mb-3 border border-3 border-primary"
+            width="150"
+            height="150"
+          />
+          <h5 class="fw-bold">{{ user.first_name }} {{ user.last_name }}</h5>
+          <p class="text-muted">{{ user.email }}</p>
+
+          <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil-square"></i> Edit Profile
+          </a>
+        </div>
+
+        <!-- Profile Details -->
+        <div class="col-lg-8">
+          <div class="card border-0">
+            <div class="card-body">
+              <h5 class="fw-bold text-primary mb-3">Personal Information</h5>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label text-muted">First Name</label>
+                  <p class="fw-semibold mb-0">{{ user.first_name }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-muted">Last Name</label>
+                  <p class="fw-semibold mb-0">{{ user.last_name }}</p>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label text-muted">Phone</label>
+                  <p class="fw-semibold mb-0">{{ user.phone or '—' }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-muted">Email</label>
+                  <p class="fw-semibold mb-0">{{ user.email }}</p>
+                </div>
+              </div>
+
+              <hr>
+
+              <!-- ===== Current Location ===== -->
+              <h5 class="fw-bold text-primary mb-3">Current Location</h5>
+              {% if user.address %}
+              <div class="mb-3">
+                <p class="fw-semibold mb-1">
+                  <i class="bi bi-geo-alt text-danger"></i> {{ user.address }}
+                </p>
+                <p class="mb-1">City: {{ user.city }}</p>
+                <p class="mb-1">Province: {{ user.province }}</p>
+                <p class="mb-1">Country: {{ user.country }}</p>
+                <p class="mb-1">ZIP Code: {{ user.zip_code }}</p>
+              </div>
+              {% else %}
+              <p class="text-muted">No location information available.</p>
+              {% endif %}
+
+              <!-- ===== Change Location Button ===== -->
+              <div class="text-end">
+                <button class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#changeLocation">
+                  <i class="bi bi-geo"></i> Change Location
+                </button>
+              </div>
+
+              <!-- ===== Change Location Form ===== -->
+              <div class="collapse mt-4" id="changeLocation">
+                <div class="card card-body border-primary">
+                  <h6 class="fw-bold text-primary mb-3">
+                    <i class="bi bi-pencil-square"></i> Update Location
+                  </h6>
+                  <form method="POST" action="{{ url_for('change_location') }}">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label for="country" class="form-label">Country</label>
+                        <input type="text" class="form-control" id="country" name="country"
+                          value="{{ user.country or '' }}" required>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="province" class="form-label">Province</label>
+                        <input type="text" class="form-control" id="province" name="province"
+                          value="{{ user.province or '' }}" required>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="city" class="form-label">City</label>
+                        <input type="text" class="form-control" id="city" name="city"
+                          value="{{ user.city or '' }}" required>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="zip" class="form-label">ZIP Code</label>
+                        <input type="text" class="form-control" id="zip" name="zip_code"
+                          value="{{ user.zip_code or '' }}" required pattern="^\d{5}$">
+                      </div>
+                      <div class="col-12">
+                        <label for="address" class="form-label">Full Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3" required>{{ user.address or '' }}</textarea>
+                      </div>
+                      <div class="col-12 text-end mt-3">
+                        <button type="submit" class="btn btn-success">
+                          <i class="bi bi-check-circle"></i> Save Location
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse"
+                          data-bs-target="#changeLocation">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

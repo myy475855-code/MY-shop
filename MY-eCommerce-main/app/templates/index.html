@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block body %}
+
+<!-- ===== CATEGORY SECTION ===== -->
+<section class="bg-white py-4 border-bottom">
+  <div class="container">
+    <h4 class="fw-bold mb-3 text-primary"><i class="bi bi-grid"></i> Categories</h4>
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 text-center">
+      {% set categories = [] %}
+      {% for p in products %}
+        {% for c in p.categories.split(',') if c.strip() not in categories %}
+          {% set _ = categories.append(c.strip()) %}
+        {% endfor %}
+      {% endfor %}
+
+      {% if categories %}
+        {% for category in categories %}
+        <div class="col">
+          <a href="{{ url_for('search', q=category) }}" class="btn btn-outline-primary w-100">
+            {{ category }}
+          </a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">No categories found.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRODUCT SECTION ===== -->
+<section class="py-5">
+  <div class="container">
+    <h4 class="fw-bold mb-4 text-primary"><i class="bi bi-box"></i> Featured Products</h4>
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+      {% if products %}
+        {% for product in products %}
+        <div class="col">
+          <div class="card h-100 shadow-sm">
+            <img src="{{ url_for('static', filename='uploads/' + product.main_image) }}" 
+                 class="card-img-top" alt="{{ product.name }}" 
+                 style="height: 200px; object-fit: cover;">
+            <div class="card-body">
+              <h5 class="card-title">
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="text-decoration-none text-dark">
+                  {{ product.name }}
+                </a>
+              </h5>
+              <p class="fw-bold text-primary">${{ "%.2f"|format(product.price) }}</p>
+
+              <form method="POST" action="{{ url_for('cart_add', product_id=product.id) }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                  <i class="bi bi-cart"></i> Add to Cart
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">No products available right now.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block body %}
+
+<section class="container my-5">
+  <div class="row g-5">
+    <!-- Product Images -->
+    <div class="col-lg-6 text-center">
+      <img id="mainImage" 
+           src="{{ url_for('static', filename='uploads/' ~ product.image_main) }}" 
+           alt="{{ product.name }}" 
+           class="product-img shadow">
+      <div class="mt-3 d-flex justify-content-center gap-3">
+        {% for image in product.images %}
+          <img src="{{ url_for('static', filename='uploads/' ~ image) }}" 
+               class="thumb-img" 
+               onclick="changeImage(this.src)" 
+               alt="thumb{{ loop.index }}">
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="col-lg-6">
+      <h2 class="fw-bold mb-2 text-primary">{{ product.name }}</h2>
+      <p class="text-muted">Category: <span class="fw-semibold">{{ product.category }}</span></p>
+      <h4 class="text-success mb-3">${{ '%.2f'|format(product.price) }}</h4>
+
+      <p><strong>Description:</strong> {{ product.description }}</p>
+
+      {% if product.specifications %}
+      <p><strong>Specifications:</strong></p>
+      <ul>
+        {% for key, value in product.specifications.items() %}
+          <li>{{ key }}: {{ value }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <div class="d-flex gap-3 mt-4">
+        <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-cart-plus"></i> Add to Cart
+          </button>
+        </form>
+
+        <form method="POST" action="{{ url_for('buy_now', product_id=product.id) }}">
+          <button type="submit" class="btn btn-success btn-lg">
+            <i class="bi bi-bag-check"></i> Buy Now
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMMENT SECTION ===== -->
+<section class="container mb-5">
+  <div class="card shadow">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Product Comments</h5>
+    </div>
+    <div class="card-body">
+      <!-- Comment Form -->
+      {% if current_user.is_authenticated %}
+      <form method="POST" action="{{ url_for('add_comment', product_id=product.id) }}" class="mb-4">
+        <div class="mb-3">
+          <label for="comment" class="form-label fw-semibold">Leave a Comment</label>
+          <textarea id="comment" name="comment" class="form-control" rows="3" placeholder="Write your review..." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Post Comment</button>
+      </form>
+      {% else %}
+      <div class="alert alert-warning">
+        Please <a href="{{ url_for('signin') }}" class="alert-link">sign in</a> to post a comment.
+      </div>
+      {% endif %}
+
+      <!-- Existing Comments -->
+      <div class="border-top pt-3">
+        {% if comments %}
+          {% for c in comments %}
+          <div class="mb-3">
+            <strong>{{ c.user.name }}</strong> 
+            <small class="text-muted">— {{ c.created_at.strftime('%b %d, %Y') }}</small>
+            <p class="mb-1">{{ c.content }}</p>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted mb-0">No comments yet. Be the first to share your thoughts!</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function changeImage(src) {
+    document.getElementById("mainImage").src = src;
+  }
+</script>
+
+{% endblock %}

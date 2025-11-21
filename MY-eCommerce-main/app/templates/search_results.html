@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="container my-5">
+  <h3 class="text-primary mb-4">
+    Search Results for: "{{ query }}"
+  </h3>
+
+  {% if products %}
+    <div class="row g-4">
+      {% for product in products %}
+      <div class="col-md-3">
+        <div class="card shadow-sm h-100">
+          <img src="{{ product.main_image or '/static/images/default.png' }}" class="card-img-top" alt="{{ product.name }}">
+          <div class="card-body">
+            <h6 class="card-title fw-bold">{{ product.name }}</h6>
+            <p class="text-muted small mb-1">{{ product.categories }}</p>
+            <p class="fw-bold text-primary mb-2">${{ "%.2f"|format(product.price) }}</p>
+            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-primary w-100">
+              View Details
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No products found matching your search.</p>
+  {% endif %}
+</div>
+{% endblock %}
