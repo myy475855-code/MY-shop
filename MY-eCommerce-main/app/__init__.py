@@ -5,12 +5,15 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from itsdangerous import URLSafeTimedSerializer
 from dotenv import load_dotenv
+from flask_mail import Mail
+
 
 # --- Extensions ---
 db = SQLAlchemy()
 login_manager = LoginManager()
 serializer = None
 
+mail = Mail()
 
 def create_app():
     load_dotenv()
@@ -31,12 +34,13 @@ def create_app():
     app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8MB limit
 
     # --- Mail Config ---
-    app.config["MAIL_SERVER"] = os.environ.get("MAIL_SERVER")
-    app.config["MAIL_PORT"] = int(os.environ.get("MAIL_PORT") or 587)
-    app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME")
-    app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")
-    app.config["MAIL_USE_TLS"] = os.environ.get("MAIL_USE_TLS", "True") == "True"
-    app.config["MAIL_DEFAULT_SENDER"] = os.environ.get("MAIL_DEFAULT_SENDER", "no-reply@myshop.local")
+    
+    app.config["MAIL_SERVER"] = "smtp.gmail.com"
+    app.config["MAIL_PORT"] = 587
+    app.config["MAIL_USE_TLS"] = True
+    app.config["MAIL_USERNAME"] = "yourgmail@gmail.com"   # your email
+    app.config["MAIL_PASSWORD"] = "your-app-password"     # app password
+    app.config["MAIL_DEFAULT_SENDER"] = "yourgmail@gmail.com"
 
     # --- Initialize extensions ---
     db.init_app(app)
@@ -50,6 +54,8 @@ def create_app():
     from app import routes
     routes.register_routes(app)
 
+    mail.init_app(app)
+    
     with app.app_context():
         db.create_all()
 

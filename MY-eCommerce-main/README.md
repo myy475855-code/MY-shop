@@ -46,3 +46,17 @@ myshop/
 
 
 /upload-product
+
+
+Go to:
+🔗 https://myaccount.google.com/apppasswords
+
+Google will ask you to log in again.
+
+Under Select app, choose Mail
+
+Under Select device, choose Other
+
+Type: Flask (or MyShop)
+
+Click Generate

@@ -4,11 +4,15 @@ from flask import (
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 import os, uuid, random, smtplib
-from email.message import EmailMessage
+from flask_mail import Message
+from app import mail
 from datetime import datetime, timedelta
 from app import db, login_manager
 from app.models import User, Product, Cart, Order, OrderItem, Comment
 
+
+
+    
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -52,7 +56,6 @@ def register_routes(app):
             flash("Registered. Please log in.", "success")
             return redirect(url_for("login"))
         return render_template("register.html")
-
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if request.method == "POST":
@@ -60,13 +63,12 @@ def register_routes(app):
             password = request.form["password"]
             user = User.query.filter_by(email=email).first()
             if user and user.check_password(password):
-                login_user(user)
-                flash("Logged in successfully.", "success")
-                return redirect(url_for("index"))
+                    login_user(user)
+                    flash("Logged in successfully.", "success")
+                    return redirect(url_for("index"))
             flash("Invalid credentials", "danger")
             return redirect(url_for("login"))
         return render_template("signin.html")
-
     @app.route("/logout")
     @login_required
     def logout():
@@ -282,7 +284,7 @@ def register_routes(app):
 
         # Create new order
         order = Order(
-            order_number=generate_order_number(),
+            order_number= generate_order_number(),
             user_id=current_user.id,
             total_amount=total,
             shipping=0.0,
@@ -334,28 +336,25 @@ def register_routes(app):
 
     @app.route("/forgot-password", methods=["GET", "POST"])
     def forgot_password():
+        
         if request.method == "POST":
             email = request.form["email"]
-            user = User.query.filter_by(email=email).first()
 
-            if user:
-                # Generate a 6-digit verification code
-                code = str(random.randint(100000, 999999))
+            code = random.randint(100000, 999999)
 
-                # Store the code and its expiry (10 min) in session (or database)
-                session["reset_email"] = email
-                session["reset_code"] = code
-                session["reset_expiry"] = (datetime.utcnow() + timedelta(minutes=10)).isoformat()
-
-                # Send code via email
-                body = f"""Your password reset code is: {code}
+            msg = Message(
+                subject="Your OTP Code",
+                sender=app.config["MAIL_USERNAME"],
+                recipients=[email]
+            )
+            msg.body = f"""Your password reset code is: {code}
 
                 This code will expire in 10 minutes.
                 If you did not request this, please ignore this email."""
-                send_email("MyShop Password Reset Code", user.email, body)
+            mail.send(msg)
 
-            flash("If an account exists, a verification code has been sent to your email.", "info")
-            return redirect(url_for("verify_code"))
+            flash("OTP Sent Successfully!", "success")
+            return redirect(url_for("verify_code", email=email))
 
         return render_template("forgot_password.html")
 
@@ -440,15 +439,14 @@ def register_routes(app):
             flash("Please enter both email and message.", "warning")
             return redirect(request.referrer or url_for("index"))
 
-        body = f"""
-        New contact form submission from MyShop:
+        try:
+            msg = Message("New Contact Message - MyShop", "myy502388@gmail.com", body)
+            msg.body = body = f"""New contact form submission from MyShoFrom: {email}Message:{message}"""
+            mail.send(msg)
+    
+        except Exception as e:
+            print("\n❌ EMAIL ERROR:", e)
 
-        From: {email}
-        Message:
-        {message}
-        """
-
-        send_email("New Contact Message - MyShop", "myy502388@gmail.com", body)
         flash("Your message has been sent successfully. We'll contact you soon!", "success")
         return redirect(request.referrer or url_for("index"))
 
@@ -465,4 +463,6 @@ def register_routes(app):
     def internal_error(e):
         db.session.rollback()
         return render_template("500.html"), 500
+    
+    
     pass

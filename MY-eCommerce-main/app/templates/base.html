@@ -15,40 +15,69 @@
 <body>
 
  <!-- ===== NAVBAR ===== -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-white shadow-sm">
+<<!-- ===== NAVBAR ===== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm custom-navbar">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">MyShop</a>
+    
+    <!-- Logo -->
+    <a class="navbar-brand fw-bold brand-text" href="{{ url_for('index') }}">
+      MyShop
+    </a>
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="mainNavbar">
+
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+        <!-- Home -->
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('index') }}">Home</a>
         </li>
+
+        <!-- Cart (visible only to logged-in users) -->
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('cart') }}">Cart</a>
         </li>
+
+        <!-- ADMIN ONLY links -->
+        {% set is_admin = current_user.is_authenticated and current_user.email == "admin@gmail.com" %}
+        
+        {% if is_admin %}
+        <li class="nav-item admin-link">
+          <a class="nav-link admin-nav" href="{{ url_for('upload') }}">
+            <i class="bi bi-cloud-upload"></i> Upload
+          </a>
+        </li>
+
+        <li class="nav-item admin-link">
+          <a class="nav-link admin-nav" href="{{ url_for('dashboard') }}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
+        </li>
+        {% endif %}
+
       </ul>
 
-      <!-- Search bar -->
-      <form class="d-flex" role="search" action="{{ url_for('search') }}" method="get">
+      <!-- Search bar (Only admin sees it) -->
+      <form class="d-flex me-3" role="search" action="{{ url_for('search') }}" method="get">
         <input class="form-control me-2" type="search" name="q" placeholder="Search for products..." aria-label="Search">
-         <button class="btn btn-outline-success" type="submit">Search</button>
+        <button class="btn btn-outline-primary" type="submit">Search</button>
       </form>
 
-
-
-      <!-- Right side user section -->
+      <!-- Right side user -->
       <ul class="navbar-nav">
+
         {% if current_user.is_authenticated %}
-        <!-- When user is logged in -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="nav-link dropdown-toggle user-btn" href="#" id="userDropdown" role="button"
+            data-bs-toggle="dropdown">
             <i class="bi bi-person-circle me-1"></i>
             {{ current_user.first_name or 'Account' }}
           </a>
+
           <ul class="dropdown-menu dropdown-menu-end shadow">
             <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="bi bi-person"></i> Profile</a></li>
             <li><a class="dropdown-item" href="{{ url_for('orders') }}"><i class="bi bi-bag-check"></i> Orders</a></li>
@@ -57,7 +86,6 @@
           </ul>
         </li>
         {% else %}
-        <!-- When no user logged in -->
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('login') }}"><i class="bi bi-box-arrow-in-right"></i> Login</a>
         </li>
@@ -65,10 +93,13 @@
           <a class="nav-link" href="{{ url_for('register') }}"><i class="bi bi-person-plus"></i> Register</a>
         </li>
         {% endif %}
+
       </ul>
+
     </div>
   </div>
 </nav>
+
 
 
   <!-- Main Content (Optional) -->
