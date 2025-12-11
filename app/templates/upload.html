@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="container my-5">
+  <h3 class="text-primary mb-4"><i class="bi bi-box-seam"></i> Upload New Product</h3>
+
+  <div class="card shadow-lg rounded-4 animate__animated animate__fadeInUp">
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('upload_product') }}" enctype="multipart/form-data">
+
+        <!-- Product Name -->
+        <div class="mb-3">
+          <label for="productName" class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control form-control-hover" id="productName" name="product_name" required>
+        </div>
+
+        <!-- Price & Discount -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label for="price" class="form-label fw-semibold">Price ($) <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" class="form-control form-control-hover" id="price" name="price" required>
+          </div>
+          <div class="col-md-6">
+            <label for="discounted_price" class="form-label fw-semibold">Discounted Price ($)</label>
+            <input type="number" step="0.01" class="form-control form-control-hover" id="discounted_price" name="discounted_price">
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-3">
+          <label for="description" class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
+          <textarea class="form-control form-control-hover" id="description" name="description" rows="3" required></textarea>
+        </div>
+
+        <!-- Images -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Images <span class="text-danger">*</span></label>
+          <div id="imageInputs">
+            <input type="file" name="image1" accept="image/*" class="form-control mb-2" required>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary mt-1 btn-hover-scale" id="addImageBtn">Add More Image (max 4)</button>
+        </div>
+
+        <!-- Categories -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Categories <span class="text-danger">*</span></label>
+          <div id="categoryInputs">
+            <input type="text" name="categories[]" class="form-control mb-2 form-control-hover" placeholder="Enter category" required>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary mt-1 btn-hover-scale" id="addCategoryBtn">Add More Category (max 5)</button>
+        </div>
+
+        <!-- Specifications -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Specifications</label>
+          <div id="specInputs">
+            <div class="row mb-2 spec-row">
+              <div class="col-md-6">
+                <input type="text" name="spec_name[]" class="form-control form-control-hover" placeholder="Name (e.g., Weight)" required>
+              </div>
+              <div class="col-md-6">
+                <input type="text" name="spec_type[]" class="form-control form-control-hover" placeholder="Type (e.g., 1kg)" required>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary mt-1 btn-hover-scale" id="addSpecBtn">Add More Spec (max 5)</button>
+        </div>
+
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-primary btn-lg btn-hover-scale"><i class="bi bi-upload"></i> Upload Product</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Hover & focus effects */
+  .form-control-hover:focus {
+    border-color: #2575fc;
+    box-shadow: 0 0 8px rgba(37,117,252,0.3);
+    transition: all 0.3s;
+  }
+
+  /* Button hover scale */
+  .btn-hover-scale {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-hover-scale:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  }
+</style>
+
+<script>
+  // Dynamic Image Inputs
+  let imageCount = 1;
+  document.getElementById('addImageBtn').addEventListener('click', () => {
+    if(imageCount >= 4) return alert("Maximum 4 images allowed");
+    imageCount++;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.name = 'image' + imageCount;
+    input.accept = 'image/*';
+    input.className = 'form-control mb-2';
+    document.getElementById('imageInputs').appendChild(input);
+  });
+
+  // Dynamic Category Inputs
+  let categoryCount = 1;
+  document.getElementById('addCategoryBtn').addEventListener('click', () => {
+    if(categoryCount >= 5) return alert("Maximum 5 categories allowed");
+    categoryCount++;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'categories[]';
+    input.placeholder = 'Enter category';
+    input.className = 'form-control mb-2 form-control-hover';
+    document.getElementById('categoryInputs').appendChild(input);
+  });
+
+  // Dynamic Specifications
+  let specCount = 1;
+  document.getElementById('addSpecBtn').addEventListener('click', () => {
+    if(specCount >= 5) return alert("Maximum 5 specifications allowed");
+    specCount++;
+    const div = document.createElement('div');
+    div.className = 'row mb-2 spec-row';
+    div.innerHTML = `
+      <div class="col-md-6">
+        <input type="text" name="spec_name[]" class="form-control form-control-hover" placeholder="Name (e.g., Weight)" required>
+      </div>
+      <div class="col-md-6">
+        <input type="text" name="spec_type[]" class="form-control form-control-hover" placeholder="Type (e.g., 1kg)" required>
+      </div>
+    `;
+    document.getElementById('specInputs').appendChild(div);
+  });
+</script>
+
+<!-- Animate.css for smooth fade-in -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+{% endblock %}
