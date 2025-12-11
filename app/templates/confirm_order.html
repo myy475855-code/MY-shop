@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block body %}
+
+<!-- ===== ORDER CONFIRMATION SECTION ===== -->
+<div class="container my-5">
+    <h1 class="text-center mb-5 fw-bold animate__animated animate__fadeInDown">Confirm Your Order</h1>
+
+    <form method="POST" action="{{ url_for('cart_confirm') }}">
+        <div class="row g-4">
+
+            <!-- User Information -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 card-hover animate__animated animate__fadeInUp">
+                    <div class="card-body">
+                        <h5 class="card-title fw-semibold mb-3">Your Information</h5>
+                        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Phone:</strong> {{ user.phone or "Not provided" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Information -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 card-hover animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                    <div class="card-body">
+                        <h5 class="card-title fw-semibold mb-3">Shipping Address</h5>
+                        <p>{{ user.address }}</p>
+                        <p>{{ user.city }}, {{ user.province }}</p>
+                        <p>{{ user.country }} - {{ user.zip_code }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment and Order Summary -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 card-hover animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                    <div class="card-body">
+                        <h5 class="card-title fw-semibold mb-3">Payment Method</h5>
+
+                        <div class="mb-4">
+                            <div class="form-check p-3 border rounded-3 mb-2 payment-option">
+                                <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod" required>
+                                <label class="form-check-label" for="cod">
+                                    💵 <strong>Pay on Delivery</strong><br>
+                                    <small class="text-muted">Pay with cash/card when your order arrives.</small>
+                                </label>
+                            </div>
+
+                            <div class="form-check p-3 border rounded-3 payment-option">
+                                <input class="form-check-input" type="radio" name="payment_method" id="card" value="card">
+                                <label class="form-check-label" for="card">
+                                    💳 <strong>Card Payment</strong><br>
+                                    <small class="text-muted">Pay securely using your debit or credit card.</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Stripe Card Element -->
+                        <div id="card-element-container" style="display:none;">
+                            <div id="card-element" class="p-3 border rounded"></div>
+                            <div id="card-errors" role="alert" class="text-danger mt-2"></div>
+                        </div>
+
+                        <h5 class="fw-semibold mb-3 mt-4">Your Order</h5>
+                        <ul class="list-group mb-3 order-summary">
+                            {% for item in items %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>{{ item.product.name }} (x{{ item.quantity }})</span>
+                                <span>${{ "%.2f"|format(item.product.price * item.quantity) }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+
+                        <div class="d-flex justify-content-between border-top pt-3 fw-bold fs-5 total-summary">
+                            <span>Total:</span>
+                            <span>${{ "%.2f"|format(total) }}</span>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-gradient btn-lg rounded-3 fw-semibold">
+                                Confirm Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<!-- STRIPE JS -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  const stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}');
+  const elements = stripe.elements();
+  const cardElement = elements.create('card');
+  cardElement.mount('#card-element');
+
+  const cardRadio = document.getElementById('card');
+  const codRadio = document.getElementById('cod');
+  const cardContainer = document.getElementById('card-element-container');
+
+  cardRadio.addEventListener('change', () => cardContainer.style.display = 'block');
+  codRadio.addEventListener('change', () => cardContainer.style.display = 'none');
+
+  const form = document.querySelector('form');
+  form.addEventListener('submit', async (e) => {
+    if(cardRadio.checked){
+      e.preventDefault();
+      const { paymentIntent, error } = await stripe.confirmCardPayment(
+        "{{ client_secret }}", { payment_method: { card: cardElement } }
+      );
+
+      if(error){
+        document.getElementById('card-errors').textContent = error.message;
+      } else if(paymentIntent.status === "succeeded"){
+        form.submit();
+      }
+    }
+  });
+</script>
+
+<style>
+  /* === CARD HOVER EFFECT === */
+  .card-hover {
+      transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  }
+
+  /* === PAYMENT OPTION HOVER === */
+  .payment-option {
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      cursor: pointer;
+  }
+  .payment-option:hover {
+      transform: scale(1.02);
+      background: rgba(37, 117, 252, 0.05);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  }
+
+  /* === BUTTON GRADIENT === */
+  .btn-gradient {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      color: #fff;
+      border: none;
+      transition: all 0.3s;
+  }
+  .btn-gradient:hover {
+      background: linear-gradient(90deg, #2575fc, #6a11cb);
+      transform: scale(1.05);
+  }
+
+  /* === ORDER SUMMARY === */
+  .order-summary li {
+      transition: background 0.2s;
+  }
+  .order-summary li:hover {
+      background: rgba(37, 117, 252, 0.05);
+  }
+  .total-summary span.text-primary {
+      color: #2575fc;
+  }
+</style>
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+{% endblock %}
