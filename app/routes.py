@@ -1,14 +1,13 @@
 # app/routes.py
-from flask import (
-    render_template, request, redirect, url_for, flash, session, current_app
-)
+from flask import render_template, request, redirect, url_for, flash, session, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from functools import wraps
 import os, uuid, random
 from datetime import datetime, timedelta
-from app import db, login_manager
+from app import db, login_manager, mail
 from app.models import User, Product, Cart, Order, OrderItem, Comment
+from flask_mail import Message
 
 # ----------------- User Loader -----------------
 @login_manager.user_loader
@@ -19,12 +18,16 @@ def load_user(user_id):
 def generate_order_number():
     return str(uuid.uuid4()).replace("-", "").upper()[:12]
 
-def send_email(subject, to, body):
-    """
-    Placeholder email sending function.
-    Replace with actual SMTP or Flask-Mail logic.
-    """
-    print(f"Email to {to}:\nSubject: {subject}\n{body}")
+def send_email(subject, to, body_text, body_html=None):
+    """Send email using Flask-Mail"""
+    try:
+        msg = Message(subject=subject, recipients=[to])
+        msg.body = body_text
+        if body_html:
+            msg.html = body_html
+        mail.send(msg)
+    except Exception as e:
+        print(f"Error sending email: {e}")
 
 def admin_required(f):
     @wraps(f)
@@ -36,7 +39,7 @@ def admin_required(f):
     return decorated
 
 def get_monthly_sales():
-    """Return sales totals for each month (Jan-Dec)"""
+    """Return monthly sales totals"""
     monthly_sales = []
     for month in range(1, 13):
         total = db.session.query(db.func.sum(Order.total_amount)) \
@@ -64,6 +67,7 @@ def register_routes(app):
             if User.query.filter_by(email=email).first():
                 flash("Email already registered", "warning")
                 return redirect(url_for("register"))
+
             user = User(
                 email=email,
                 first_name=request.form.get("firstName"),
@@ -106,7 +110,7 @@ def register_routes(app):
         flash("Logged out.", "info")
         return redirect(url_for("index"))
 
-    # -------- Profile & Location --------
+    # -------- Profile --------
     @app.route("/profile", methods=["GET", "POST"])
     @login_required
     def profile():
@@ -137,37 +141,23 @@ def register_routes(app):
     @admin_required
     def upload_product():
         if request.method == "POST":
-            
-            # Basic product info
             name = request.form.get("product_name")
             description = request.form.get("description")
             price = float(request.form.get("price") or 0)
             discounted_price = request.form.get("discounted_price")
             discounted_price = float(discounted_price) if discounted_price else None
 
-            # Categories (list → comma separated)
             categories = request.form.getlist("categories[]")
             categories = ",".join(categories)
 
-            # Specifications (combine name & value into "name:value")
             spec_names = request.form.getlist("spec_name[]")
             spec_values = request.form.getlist("spec_type[]")
-
-            simple_specs = []
-            for n, v in zip(spec_names, spec_values):
-                if n and v:
-                    simple_specs.append(f"{n}: {v}")
-
+            simple_specs = [f"{n}: {v}" for n, v in zip(spec_names, spec_values) if n and v]
             specifications = "\n".join(simple_specs)
 
-            # Image uploads
-            image1 = request.files.get("image1")
-            image2 = request.files.get("image2")
-            image3 = request.files.get("image3")
-            image4 = request.files.get("image4")
-
+            images = [request.files.get(f"image{i}") for i in range(1, 5)]
             filenames = []
-            for img in [image1, image2, image3, image4]:
+            for img in images:
                 if img and img.filename != "":
                     filename = secure_filename(img.filename)
                     img.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
@@ -175,28 +165,23 @@ def register_routes(app):
                 else:
                     filenames.append(None)
 
-            # Save product
             product = Product(
                 name=name,
                 description=description,
                 specifications=specifications,
                 categories=categories,
                 price=price,
-                discounted_price=discounted_price,
+                discount_price=discounted_price,
                 main_image=filenames[0],
                 image2=filenames[1],
                 image3=filenames[2],
                 image4=filenames[3],
             )
-
             db.session.add(product)
             db.session.commit()
-
             flash("Product uploaded successfully!", "success")
             return redirect(url_for("upload_product"))
-
         return render_template("upload.html")
-
 
     # -------- Products Listing --------
     @app.route("/products")
@@ -217,7 +202,7 @@ def register_routes(app):
                     product_id=p.id,
                     user_id=current_user.get_id() if current_user.is_authenticated else None,
                     name=current_user.first_name if current_user.is_authenticated else request.form.get("name") or "Guest",
-                    body=body
+                    content=body
                 )
                 db.session.add(comment)
                 db.session.commit()
@@ -227,7 +212,7 @@ def register_routes(app):
         images = [p.main_image] + [img for img in [p.image2, p.image3, p.image4] if img]
         return render_template("product_detail.html", product=p, comments=comments, images=images)
 
-    # -------- Cart Management --------
+    # -------- Cart --------
     @app.route("/cart/add/<int:product_id>", methods=["POST"])
     @login_required
     def cart_add(product_id):
@@ -259,7 +244,82 @@ def register_routes(app):
             flash("Item removed from cart.", "info")
         return redirect(url_for("cart"))
 
-    # -------- Order Confirmation / Checkout --------
+    # -------- Contact (Flask-Mail) --------
+    @app.route("/contact", methods=["GET", "POST"])
+    def contact():
+        if request.method == "POST":
+            email = request.form.get("email")
+            message = request.form.get("message")
+            if not email or not message:
+                flash("Enter both email and message.", "warning")
+                return redirect(request.referrer or url_for("index"))
+
+            text_body = f"From: {email}\n\nMessage:\n{message}"
+            html_body = f"<h3>New Contact Message</h3><p><b>From:</b> {email}</p><p>{message}</p>"
+
+            send_email("New Contact Message", "myy502388@gmail.com", text_body, html_body)
+            flash("Message sent successfully!", "success")
+            return redirect(request.referrer or url_for("index"))
+
+        return render_template("contact.html")
+
+    # -------- Forgot / Reset Password (Flask-Mail) --------
+    @app.route("/forgot-password", methods=["GET", "POST"])
+    def forgot_password():
+        if request.method == "POST":
+            email = request.form.get("email")
+            user = User.query.filter_by(email=email).first()
+            if user:
+                code = str(random.randint(100000, 999999))
+                session["reset_email"] = email
+                session["reset_code"] = code
+                session["reset_expiry"] = (datetime.utcnow() + timedelta(minutes=10)).isoformat()
+
+                text_body = f"Your password reset code is: {code}"
+                html_body = f"<h2>Password Reset Code</h2><p>Your verification code is <b>{code}</b>. It expires in 10 minutes.</p>"
+
+                send_email("Reset Code", email, text_body, html_body)
+
+            flash("If the account exists, a verification code was sent.", "info")
+            return redirect(url_for("verify_code"))
+        return render_template("forgot_password.html")
+
+    @app.route("/verify-code", methods=["GET", "POST"])
+    def verify_code():
+        if request.method == "POST":
+            code = request.form.get("code")
+            saved_code = session.get("reset_code")
+            expiry = datetime.fromisoformat(session.get("reset_expiry"))
+            if code == saved_code and datetime.utcnow() <= expiry:
+                flash("Code verified.", "success")
+                return redirect(url_for("reset_password"))
+            flash("Invalid or expired code.", "danger")
+            return redirect(url_for("verify_code"))
+        return render_template("verify_code.html")
+
+    @app.route("/reset-password", methods=["GET", "POST"])
+    def reset_password():
+        email = session.get("reset_email")
+        if not email:
+            flash("Session expired.", "danger")
+            return redirect(url_for("forgot_password"))
+        user = User.query.filter_by(email=email).first_or_404()
+        if request.method == "POST":
+            new = request.form.get("newPassword")
+            confirm = request.form.get("confirmPassword")
+            if new and new == confirm:
+                user.set_password(new)
+                db.session.commit()
+                session.pop("reset_email", None)
+                session.pop("reset_code", None)
+                session.pop("reset_expiry", None)
+                flash("Password reset successful.", "success")
+                return redirect(url_for("login"))
+            flash("Passwords do not match.", "warning")
+            return redirect(request.url)
+        return render_template("reset_password.html", user=user)
+
+    # -------- Checkout / Orders (Flask-Mail) --------
     @app.route("/cart/confirm", methods=["GET", "POST"])
     @login_required
     def cart_confirm():
@@ -317,21 +377,20 @@ def register_routes(app):
             db.session.delete(item)
         db.session.commit()
 
-        # Email notification to admin
-        order_details = "\n".join([f"{oi.product_name} x {oi.quantity} = ${oi.unit_price * oi.quantity:.2f}" for oi in order.items])
-        body = f"""
-        New order confirmed!
-
-        Order Number: {order.order_number}
-        Customer: {current_user.first_name} {current_user.last_name}
-        Email: {current_user.email}
-        Total Amount: ${order.total_amount:.2f}
-        Payment Method: {payment_method}
-
-        Items:
-        {order_details}
+        # Send order confirmation email to admin
+        order_details_html = "<br>".join([f"{oi.product_name} x {oi.quantity} = ${oi.unit_price * oi.quantity:.2f}" for oi in order.items])
+        text_body = f"New order confirmed!\nOrder Number: {order.order_number}\nCustomer: {current_user.first_name} {current_user.last_name}\nEmail: {current_user.email}\nTotal Amount: ${order.total_amount:.2f}\nPayment Method: {payment_method}\nItems:\n" + "\n".join([f"{oi.product_name} x {oi.quantity} = ${oi.unit_price * oi.quantity:.2f}" for oi in order.items])
+        html_body = f"""
+        <h2>New Order Confirmed</h2>
+        <p><b>Order Number:</b> {order.order_number}</p>
+        <p><b>Customer:</b> {current_user.first_name} {current_user.last_name}</p>
+        <p><b>Email:</b> {current_user.email}</p>
+        <p><b>Total Amount:</b> ${order.total_amount:.2f}</p>
+        <p><b>Payment Method:</b> {payment_method}</p>
+        <h3>Items:</h3>
+        <p>{order_details_html}</p>
         """
-        send_email("New Order Confirmed - MyShop", "myy502388@gmail.com", body)
+        send_email("New Order Confirmed - MyShop", "myy502388@gmail.com", text_body, html_body)
 
         flash("Order placed successfully!", "success")
         return redirect(url_for("order_confirmation", order_id=order.id))
@@ -359,70 +418,7 @@ def register_routes(app):
         ).all() if q else []
         return render_template("search_results.html", products=products, query=q)
 
-    # -------- Contact --------
-    @app.route("/contact", methods=["POST"])
-    def contact():
-        email = request.form.get("email")
-        message = request.form.get("message")
-        if not email or not message:
-            flash("Enter both email and message.", "warning")
-            return redirect(request.referrer or url_for("index"))
-        send_email("New Contact Message", "myy502388@gmail.com", f"From: {email}\nMessage:\n{message}")
-        flash("Message sent successfully!", "success")
-        return redirect(request.referrer or url_for("index"))
-
-    # -------- Forgot Password --------
-    @app.route("/forgot-password", methods=["GET", "POST"])
-    def forgot_password():
-        if request.method == "POST":
-            email = request.form.get("email")
-            user = User.query.filter_by(email=email).first()
-            if user:
-                code = str(random.randint(100000, 999999))
-                session["reset_email"] = email
-                session["reset_code"] = code
-                session["reset_expiry"] = (datetime.utcnow() + timedelta(minutes=10)).isoformat()
-                send_email("Reset Code", email, f"Your code is {code}")
-            flash("If the account exists, a verification code was sent.", "info")
-            return redirect(url_for("verify_code"))
-        return render_template("forgot_password.html")
-
-    @app.route("/verify-code", methods=["GET", "POST"])
-    def verify_code():
-        if request.method == "POST":
-            code = request.form.get("code")
-            saved_code = session.get("reset_code")
-            expiry = datetime.fromisoformat(session.get("reset_expiry"))
-            if code == saved_code and datetime.utcnow() <= expiry:
-                flash("Code verified.", "success")
-                return redirect(url_for("reset_password"))
-            flash("Invalid or expired code.", "danger")
-            return redirect(url_for("verify_code"))
-        return render_template("verify_code.html")
-
-    @app.route("/reset-password", methods=["GET", "POST"])
-    def reset_password():
-        email = session.get("reset_email")
-        if not email:
-            flash("Session expired.", "danger")
-            return redirect(url_for("forgot_password"))
-        user = User.query.filter_by(email=email).first_or_404()
-        if request.method == "POST":
-            new = request.form.get("newPassword")
-            confirm = request.form.get("confirmPassword")
-            if new and new == confirm:
-                user.set_password(new)
-                db.session.commit()
-                session.pop("reset_email", None)
-                session.pop("reset_code", None)
-                session.pop("reset_expiry", None)
-                flash("Password reset successful.", "success")
-                return redirect(url_for("login"))
-            flash("Passwords do not match.", "warning")
-            return redirect(request.url)
-        return render_template("reset_password.html", user=user)
-
-    # ----------------- Admin Dashboard -----------------
+    # -------- Admin Dashboard --------
     @app.route("/admin/dashboard")
     @login_required
     @admin_required
@@ -431,7 +427,7 @@ def register_routes(app):
         total_orders = Order.query.count()
         total_revenue = db.session.query(db.func.sum(Order.total_amount)).scalar() or 0
         sold_items = db.session.query(db.func.sum(OrderItem.quantity)).scalar() or 0
-        total_stock = total_products * 10  # Example stock metric
+        total_stock = total_products * 10  # Example
         sold_percentage = round((sold_items / total_stock) * 100, 2) if total_stock > 0 else 0
         chart_labels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
         chart_data = get_monthly_sales()
