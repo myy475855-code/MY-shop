@@ -47,19 +47,13 @@
                                 </label>
                             </div>
 
-                            <div class="form-check p-3 border rounded-3 payment-option">
+                        <!--   <div class="form-check p-3 border rounded-3 payment-option">
                                 <input class="form-check-input" type="radio" name="payment_method" id="card" value="card">
                                 <label class="form-check-label" for="card">
                                     💳 <strong>Card Payment</strong><br>
                                     <small class="text-muted">Pay securely using your debit or credit card.</small>
                                 </label>
-                            </div>
-                        </div>
-
-                        <!-- Stripe Card Element -->
-                        <div id="card-element-container" style="display:none;">
-                            <div id="card-element" class="p-3 border rounded"></div>
-                            <div id="card-errors" role="alert" class="text-danger mt-2"></div>
+                            </div> -->
                         </div>
 
                         <h5 class="fw-semibold mb-3 mt-4">Your Order</h5>
@@ -82,6 +76,7 @@
                                 Confirm Order
                             </button>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -90,82 +85,94 @@
     </form>
 </div>
 
-<!-- STRIPE JS -->
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-  const stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}');
-  const elements = stripe.elements();
-  const cardElement = elements.create('card');
-  cardElement.mount('#card-element');
+<!-- ====================================== -->
+<!--         POPUP CARD PAYMENT BOX         -->
+<!-- ====================================== -->
 
-  const cardRadio = document.getElementById('card');
-  const codRadio = document.getElementById('cod');
-  const cardContainer = document.getElementById('card-element-container');
+<div id="cardPopup" class="payment-popup">
+    <div class="payment-box">
+        <h3 class="text-center mb-3">Enter Card Details</h3>
 
-  cardRadio.addEventListener('change', () => cardContainer.style.display = 'block');
-  codRadio.addEventListener('change', () => cardContainer.style.display = 'none');
+        <input type="text" class="form-control mb-2" placeholder="Card Number" id="cardNumber">
+        <input type="text" class="form-control mb-2" placeholder="MM/YY" id="expiry">
+        <input type="text" class="form-control mb-2" placeholder="CVV" id="cvv">
 
-  const form = document.querySelector('form');
-  form.addEventListener('submit', async (e) => {
-    if(cardRadio.checked){
-      e.preventDefault();
-      const { paymentIntent, error } = await stripe.confirmCardPayment(
-        "{{ client_secret }}", { payment_method: { card: cardElement } }
-      );
+        <div id="payError" class="text-danger mb-2"></div>
 
-      if(error){
-        document.getElementById('card-errors').textContent = error.message;
-      } else if(paymentIntent.status === "succeeded"){
-        form.submit();
-      }
-    }
-  });
-</script>
+        <button class="btn btn-primary w-100 mb-2" id="payNowBtn">Pay Now</button>
+        <button class="btn btn-secondary w-100" id="closePopupBtn">Cancel</button>
+    </div>
+</div>
 
 <style>
-  /* === CARD HOVER EFFECT === */
-  .card-hover {
-      transition: transform 0.3s, box-shadow 0.3s;
-  }
-  .card-hover:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-  }
-
-  /* === PAYMENT OPTION HOVER === */
-  .payment-option {
-      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-      cursor: pointer;
-  }
-  .payment-option:hover {
-      transform: scale(1.02);
-      background: rgba(37, 117, 252, 0.05);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  }
-
-  /* === BUTTON GRADIENT === */
-  .btn-gradient {
-      background: linear-gradient(90deg, #6a11cb, #2575fc);
-      color: #fff;
-      border: none;
-      transition: all 0.3s;
-  }
-  .btn-gradient:hover {
-      background: linear-gradient(90deg, #2575fc, #6a11cb);
-      transform: scale(1.05);
-  }
-
-  /* === ORDER SUMMARY === */
-  .order-summary li {
-      transition: background 0.2s;
-  }
-  .order-summary li:hover {
-      background: rgba(37, 117, 252, 0.05);
-  }
-  .total-summary span.text-primary {
-      color: #2575fc;
-  }
+.payment-popup {
+    display:none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+.payment-box {
+    background: white;
+    padding: 25px;
+    width: 350px;
+    border-radius: 12px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.3);
+}
 </style>
+
+<script>
+const cardRadio = document.getElementById("card");
+const codRadio  = document.getElementById("cod");
+const popup     = document.getElementById("cardPopup");
+const payError  = document.getElementById("payError");
+const payBtn    = document.getElementById("payNowBtn");
+const closeBtn  = document.getElementById("closePopupBtn");
+const form      = document.querySelector("form");
+
+// When user selects card → show popup
+cardRadio.addEventListener("change", () => {
+    popup.style.display = "flex";
+});
+
+// COD selected → hide popup
+codRadio.addEventListener("change", () => {
+    popup.style.display = "none";
+});
+
+// Cancel popup
+closeBtn.addEventListener("click", () => {
+    popup.style.display = "none";
+    cardRadio.checked = false;
+});
+
+// Fake card validation
+payBtn.addEventListener("click", () => {
+    let num = document.getElementById("cardNumber").value;
+    let exp = document.getElementById("expiry").value;
+    let cvv = document.getElementById("cvv").value;
+
+    if(num.length < 10 || cvv.length < 3){
+        payError.textContent = "Invalid card details!";
+        return;
+    }
+
+    // Payment successful (simulation)
+    popup.style.display = "none";
+    alert("Payment Successful!");
+    form.submit();
+});
+
+// Prevent form submit if card is selected
+form.addEventListener("submit", (e) => {
+    if(cardRadio.checked){
+        e.preventDefault();
+        popup.style.display = "flex";
+    }
+});
+</script>
 
 <!-- Animate.css -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>

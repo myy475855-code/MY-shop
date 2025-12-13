@@ -194,12 +194,14 @@ def register_routes(app):
     # -------- Product Detail / Comments --------
     @app.route("/product/<int:product_id>", methods=["GET", "POST"])
     def product_detail(product_id):
-        p = Product.query.get_or_404(product_id)
+        product = Product.query.get_or_404(product_id)
+
+        # Handle comments
         if request.method == "POST":
             body = request.form.get("comment")
             if body:
                 comment = Comment(
-                    product_id=p.id,
+                    product_id=product.id,
                     user_id=current_user.get_id() if current_user.is_authenticated else None,
                     name=current_user.first_name if current_user.is_authenticated else request.form.get("name") or "Guest",
                     content=body
@@ -208,9 +210,40 @@ def register_routes(app):
                 db.session.commit()
                 flash("Comment posted!", "success")
             return redirect(request.url)
-        comments = Comment.query.filter_by(product_id=p.id).order_by(Comment.created_at.desc()).all()
-        images = [p.main_image] + [img for img in [p.image2, p.image3, p.image4] if img]
-        return render_template("product_detail.html", product=p, comments=comments, images=images)
+
+        # Parse categories (stored as comma-separated)
+        categories = product.categories.split(",") if product.categories else []
+
+        # Parse specifications (stored as newline-separated)
+        specifications = product.specifications.split("\n") if product.specifications else []
+
+        # Collect images safely
+        images = [
+            img for img in [
+                product.main_image,
+                product.image2,
+                product.image3,
+                product.image4
+            ] if img
+        ]
+
+        # Get comments
+        comments = (
+            Comment.query
+            .filter_by(product_id=product.id)
+            .order_by(Comment.created_at.desc())
+            .all()
+        )
+
+        return render_template(
+            "product_detail.html",
+            product=product,
+            images=images,
+            categories=categories,
+            specifications=specifications,
+            comments=comments
+        )
+
 
     # -------- Cart --------
     @app.route("/cart/add/<int:product_id>", methods=["POST"])
