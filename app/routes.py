@@ -182,7 +182,20 @@ def register_routes(app):
             flash("Product uploaded successfully!", "success")
             return redirect(url_for("upload_product"))
         return render_template("upload.html")
+    @app.route('/change-photo', methods=['POST'])
+    @login_required
+    def change_photo():
+        photo = request.files.get('photo')
 
+        if photo:
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            current_user.photo = filename
+            db.session.commit()
+
+        return redirect(url_for('profile'))
+
+    
     # -------- Products Listing --------
     @app.route("/products")
     def products():
@@ -259,6 +272,21 @@ def register_routes(app):
         db.session.commit()
         flash("Product added to cart!", "success")
         return redirect(request.referrer or url_for("cart"))
+
+    @app.route("/cart/update", methods=["POST"])
+    @login_required
+    def cart_update():
+        for key, value in request.form.items():
+            if key.startswith("qty_"):
+                product_id = int(key.replace("qty_", ""))
+                qty = int(value)
+                
+                item = Cart.query.filter_by(user_id=current_user.id, product_id=product_id).first()
+                if item:
+                    item.quantity = qty
+        db.session.commit()
+        flash("Cart updated!", "success")
+        return redirect(url_for("cart"))
 
     @app.route("/cart")
     @login_required
@@ -432,7 +460,7 @@ def register_routes(app):
     @login_required
     def order_confirmation(order_id):
         order = Order.query.get_or_404(order_id)
-        return render_template("order.html", order=order)
+        return render_template("orders.html", order=order)
 
     @app.route("/orders")
     @login_required

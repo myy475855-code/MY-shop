@@ -18,7 +18,7 @@ class User(db.Model, UserMixin):
     address = db.Column(db.Text)
     zip_code = db.Column(db.String(20))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    photo = db.Column(db.String(255), nullable=True)
     orders = db.relationship("Order", backref="user", lazy=True)
     cart_items = db.relationship("Cart", backref="user", lazy=True)
     comments = db.relationship("Comment", backref="user", lazy=True)
