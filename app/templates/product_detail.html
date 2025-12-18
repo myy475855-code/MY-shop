@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block body %}
+
+<section class="container my-5">
+  <div class="row g-5">
+
+    <!-- ===== PRODUCT IMAGES SLIDER ===== -->
+    <div class="col-lg-6">
+
+      <div id="productCarousel"
+           class="carousel slide shadow rounded-4"
+           data-bs-ride="carousel">
+
+        <!-- Indicators -->
+        <div class="carousel-indicators">
+          {% for image in images %}
+            <button type="button"
+                    data-bs-target="#productCarousel"
+                    data-bs-slide-to="{{ loop.index0 }}"
+                    class="{% if loop.first %}active{% endif %}">
+            </button>
+          {% endfor %}
+        </div>
+
+        <!-- Slides -->
+        <div class="carousel-inner rounded-4">
+          {% for image in images %}
+            <div class="carousel-item {% if loop.first %}active{% endif %}">
+              <img src="{{ url_for('static', filename='uploads/' ~ image) }}"
+                   class="d-block w-100 product-img"
+                   alt="{{ product.name }}">
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Controls -->
+        <button class="carousel-control-prev"
+                type="button"
+                data-bs-target="#productCarousel"
+                data-bs-slide="prev">
+          <span class="carousel-control-prev-icon"></span>
+        </button>
+
+        <button class="carousel-control-next"
+                type="button"
+                data-bs-target="#productCarousel"
+                data-bs-slide="next">
+          <span class="carousel-control-next-icon"></span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- ===== PRODUCT DETAILS ===== -->
+    <div class="col-lg-6">
+      <h2 class="fw-bold mb-2 text-primary">{{ product.name }}</h2>
+
+      <p class="text-muted">
+        Category:
+        <span class="fw-semibold">{{ product.categories }}</span>
+      </p>
+
+        <h4 class="mb-3">
+          <span class="text-muted">
+            ${{ '%.2f'|format(product.price) }}
+          </span>
+          <span class="text-success fw-bold ms-2">
+            {{ '%.2f'|format(product.discount_price/product.price*100) }}%
+          </span>
+        </h4>
+
+      <p><strong>Description:</strong> {{ product.description }}</p>
+
+      {% if product.specifications %}
+        <p><strong>Specifications:</strong></p>
+        
+          {% for spec in product.specifications.split('\n') %}
+            <p>{{ spec }}</p>
+          {% endfor %}
+      {% endif %}
+
+      <div class="d-flex gap-3 mt-4 flex-wrap">
+        <form method="POST" action="{{ url_for('cart_add', product_id=product.id) }}">
+          <button type="submit" class="btn btn-primary btn-lg btn-hover-scale">
+            <i class="bi bi-cart-plus"></i> Add to Cart
+          </button>
+        </form>
+
+        <form method="POST" action="{{ url_for('cart_add', product_id=product.id) }}">
+          <button type="submit" class="btn btn-success btn-lg btn-hover-scale">
+            <i class="bi bi-bag-check"></i> Buy Now
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== COMMENT SECTION (UNCHANGED) ===== -->
+<section class="container mb-5">
+  <div class="card shadow-sm rounded-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">
+        <i class="bi bi-chat-dots"></i> Product Comments
+      </h5>
+    </div>
+
+    <div class="card-body">
+      {% if current_user.is_authenticated %}
+        <form method="POST" class="mb-4">
+          <textarea name="comment" class="form-control mb-2" rows="3"
+                    placeholder="Write your review..." required></textarea>
+          <button type="submit" class="btn btn-primary btn-hover-scale">
+            <i class="bi bi-send"></i> Post Comment
+          </button>
+        </form>
+      {% else %}
+        <div class="alert alert-warning">
+          Please <a href="{{ url_for('login') }}">sign in</a> to post a comment.
+        </div>
+      {% endif %}
+
+      <div class="border-top pt-3">
+        {% for c in comments %}
+          <div class="mb-3 p-2 rounded shadow-sm">
+            <strong>{{ c.name }}</strong>
+            <small class="text-muted">— {{ c.created_at.strftime('%b %d, %Y') }}</small>
+            <p>{{ c.content }}</p>
+          </div>
+        {% else %}
+          <p class="text-muted">No comments yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .product-img {
+    max-height: 500px;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+
+  .product-img:hover {
+    transform: scale(1.03);
+  }
+
+  .btn-hover-scale:hover {
+    transform: scale(1.05);
+  }
+</style>
+
+{% endblock %}
