@@ -1,4 +1,3 @@
-pip install pillow flask flask_mail python-dotenv flask_sqlalchemy
+pip install pillow flask flask_mail python-dotenv flask_sqlalchemy flask_login
 
-
-this is my e-commerce app
+This is my e-commerce app
