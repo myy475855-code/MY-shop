@@ -20,20 +20,58 @@ def product_routes(app):
         return render_template("products.html",
             products=Product.query.order_by(Product.created_at.desc()).all())
 
-    @app.route("/product/<int:product_id>", methods=["GET","POST"])
+    @app.route("/product/<int:product_id>", methods=["GET", "POST"])
     def product_detail(product_id):
         product = Product.query.get_or_404(product_id)
+
+        # Handle comments
         if request.method == "POST":
-            comment = Comment(
-                product_id=product.id,
-                user_id=current_user.id if current_user.is_authenticated else None,
-                name=current_user.first_name if current_user.is_authenticated else "Guest",
-                content=request.form.get("comment")
-            )
-            db.session.add(comment)
-            db.session.commit()
+            body = request.form.get("comment")
+            if body:
+                comment = Comment(
+                    product_id=product.id,
+                    user_id=current_user.get_id() if current_user.is_authenticated else None,
+                    name=current_user.first_name if current_user.is_authenticated else request.form.get("name") or "Guest",
+                    content=body
+                )
+                db.session.add(comment)
+                db.session.commit()
+                flash("Comment posted!", "success")
             return redirect(request.url)
-        return render_template("product_detail.html", product=product)
+
+        # Parse categories (stored as comma-separated)
+        categories = product.categories.split(",") if product.categories else []
+
+        # Parse specifications (stored as newline-separated)
+        specifications = product.specifications.split("\n") if product.specifications else []
+
+        # Collect images safely
+        images = [
+            img for img in [
+                product.main_image,
+                product.image2,
+                product.image3,
+                product.image4
+            ] if img
+        ]
+
+        # Get comments
+        comments = (
+            Comment.query
+            .filter_by(product_id=product.id)
+            .order_by(Comment.created_at.desc())
+            .all()
+        )
+
+        return render_template(
+            "product_detail.html",
+            product=product,
+            images=images,
+            categories=categories,
+            specifications=specifications,
+            comments=comments
+        )
+
 
     @app.route("/search")
     def search():
