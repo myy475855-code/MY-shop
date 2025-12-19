@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="container my-5">
+  <h3 class="text-primary mb-4 animate__animated animate__fadeInDown">
+    <i class="bi bi-speedometer2"></i> Admin Dashboard
+  </h3>
+
+  <!-- ===== Dashboard Cards ===== -->
+  <div class="row g-4 mb-5">
+    {% set card_classes = ['bg-gradient-primary', 'bg-gradient-success', 'bg-gradient-info', 'bg-gradient-warning'] %}
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center p-3 card-hover animate__animated animate__fadeInUp">
+        <h5>Total Products</h5>
+        <p class="fs-3 fw-bold">{{ total_products }}</p>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-light btn-sm">Manage</a>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center p-3 card-hover animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+        <h5>Total Orders</h5>
+        <p class="fs-3 fw-bold">{{ total_orders }}</p>
+        <a href="{{ url_for('dashboard_orders') }}" class="btn btn-outline-light btn-sm">View Orders</a>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center p-3 card-hover animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+        <h5>Total Revenue</h5>
+        <p class="fs-3 fw-bold">PKR:{{ "%.2f"|format(total_revenue) }}</p>
+        <a href="#" class="btn btn-outline-light btn-sm">View Stats</a>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm text-center p-3 card-hover animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+        <h5>Products Sold %</h5>
+        <p class="fs-3 fw-bold">{{ sold_percentage }}%</p>
+        <a href="#" class="btn btn-outline-light btn-sm">View Chart</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Product Management ===== -->
+  <div class="card shadow-sm mb-5 card-hover">
+    <div class="card-header bg-gradient-primary text-white">
+      <h5 class="mb-0"><i class="bi bi-box-seam"></i> Products Management</h5>
+    </div>
+    <div class="card-body">
+      <a href="{{ url_for('upload_product') }}" class="btn btn-success mb-3 btn-hover-scale">
+        <i class="bi bi-plus-circle"></i> Add New Product
+      </a>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle product-table">
+          <thead class="table-light">
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product in products %}
+            <tr class="table-row-hover">
+              <td>{{ product.name }}</td>
+              <td>{{ product.categories }}</td>
+              <td class="text-primary fw-bold">PKR:{{ "%.2f"|format(product.price) }}</td>
+              <td>{{ product.stock }}</td>
+              <td>
+                <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-sm btn-primary btn-hover-scale me-1">
+                  <i class="bi bi-pencil-square"></i>
+                </a>
+                <a href="{{ url_for('delete_product', product_id=product.id) }}" class="btn btn-sm btn-danger btn-hover-scale">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Sales Charts ===== -->
+  <div class="card shadow-sm card-hover">
+    <div class="card-header bg-gradient-primary text-white">
+      <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> Sales Analytics</h5>
+    </div>
+    <div class="card-body">
+      <canvas id="salesChart" height="100"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('salesChart').getContext('2d');
+  const salesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: {{ chart_labels|safe }},
+      datasets: [{
+        label: 'Monthly Sales',
+        data: {{ chart_data|safe }},
+        backgroundColor: 'rgba(37, 117, 252, 0.7)',
+        borderColor: 'rgba(37, 117, 252, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        y: { beginAtZero: true },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+</script>
+
+<style>
+  /* === CARD HOVER EFFECT === */
+  .card-hover {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-radius: 12px;
+  }
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  }
+
+  /* === TABLE ROW HOVER === */
+  .table-row-hover:hover {
+    background: rgba(37, 117, 252, 0.05);
+    transition: background 0.3s;
+  }
+
+  /* === BUTTON SCALE EFFECT === */
+  .btn-hover-scale {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-hover-scale:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  }
+
+  /* === GRADIENT HEADERS === */
+  .bg-gradient-primary {
+    background: linear-gradient(90deg, #6a11cb, #2575fc) !important;
+  }
+
+  /* === TABLE STYLING === */
+  .product-table th, .product-table td {
+    vertical-align: middle;
+  }
+  .product-table th { font-weight: 600; }
+</style>
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+{% endblock %}

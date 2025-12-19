@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block body %}
+
+<!-- ===== ORDERS SECTION ===== -->
+<section class="container my-5">
+  <h3 class="fw-bold text-primary mb-4 animate__animated animate__fadeInDown">
+    <i class="bi bi-receipt-cutoff"></i> My Orders
+  </h3>
+
+  {% if orders %}
+  <div class="table-responsive">
+    <table class="table align-middle table-hover bg-white shadow-sm order-table">
+      <thead class="table-gradient">
+        <tr>
+          <th scope="col">Order ID</th>
+          <th scope="col">Date</th>
+          <th scope="col">Items</th>
+          <th scope="col">Total</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr class="accordion-toggle table-row-hover">
+          <td>#{{ order.order_number }}</td>
+          <td>{{ order.created_at.strftime('%Y-%m-%d') }}</td>
+          <td>{{ order.items|length }} item{{ 's' if order.items|length > 1 else '' }}</td>
+          <td class="text-primary fw-bold">PKR:{{ '%.2f'|format(order.total_amount) }}</td>
+          <td>
+            {% if order.status == 'Delivered' %}
+              <span class="badge bg-success badge-animated">{{ order.status }}</span>
+            {% elif order.status == 'Cancelled' %}
+              <span class="badge bg-danger badge-animated">{{ order.status }}</span>
+            {% elif order.status == 'Shipped' %}
+              <span class="badge bg-warning text-dark badge-animated">{{ order.status }}</span>
+            {% else %}
+              <span class="badge bg-secondary badge-animated">{{ order.status }}</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary btn-hover-scale" data-bs-toggle="collapse" data-bs-target="#order{{ order.id }}">
+              <i class="bi bi-eye"></i> View
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="6" class="hiddenRow">
+            <div class="accordion-collapse collapse" id="order{{ order.id }}">
+              <div class="p-3 bg-light rounded-3 shadow-sm">
+                <h6 class="fw-bold text-primary mb-2">Order Details</h6>
+                <ul class="list-group">
+                  {% for item in order.items %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ item.product_name }}
+                    <span class="fw-semibold">
+                      PKR:{{ '%.2f'|format(item.unit_price) }} × {{ item.quantity }}
+                    </span>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="alert alert-info text-center shadow-sm animate__animated animate__fadeIn">
+      <i class="bi bi-info-circle"></i> You have no orders yet.
+    </div>
+  {% endif %}
+</section>
+
+<style>
+  /* === TABLE ROW HOVER === */
+  .table-row-hover:hover {
+    background: rgba(37, 117, 252, 0.05);
+    transition: background 0.3s;
+  }
+
+  /* === BADGE ANIMATION === */
+  .badge-animated {
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .badge-animated:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  /* === BUTTON SCALE HOVER === */
+  .btn-hover-scale {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-hover-scale:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  }
+
+  /* === TABLE HEADER GRADIENT === */
+  .table-gradient {
+    background: linear-gradient(90deg, #6a11cb, #2575fc);
+    color: #fff;
+  }
+
+  /* === COLLAPSE ANIMATION SMOOTH === */
+  .accordion-collapse {
+    transition: all 0.4s ease;
+  }
+</style>
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+{% endblock %}
