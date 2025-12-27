@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="vh-100 d-flex align-items-center justify-content-center">
+
+  <div class="lux-card">
+
+    <h3 class="lux-title">Location Details</h3>
+    <p class="lux-sub">Where should we find you?</p>
+
+    <form method="POST" action="{{ url_for('register_location') }}">
+
+      <div class="lux-input">
+        <input name="country" required>
+        <label>Country</label>
+      </div>
+
+      <div class="lux-input">
+        <input name="province" required>
+        <label>Province</label>
+      </div>
+
+      <div class="lux-input">
+        <input name="city" required>
+        <label>City</label>
+      </div>
+
+      <div class="lux-input">
+        <input name="address" required>
+        <label>Full Address</label>
+      </div>
+
+      <div class="lux-input">
+        <input name="zip" required>
+        <label>ZIP Code</label>
+      </div>
+
+      <button class="lux-btn mt-3">Complete Registration</button>
+
+    </form>
+  </div>
+</div>
+
+<style>
+.lux-card{
+  width:400px;
+  background:rgba(255,255,255,.12);
+  backdrop-filter:blur(28px);
+  border-radius:26px;
+  padding:45px;
+  box-shadow:0 30px 80px rgba(0,0,0,.25);
+}
+.lux-title{
+  text-align:center;
+  font-weight:700;
+}
+.lux-sub{
+  text-align:center;
+  color:#777;
+  margin-bottom:30px;
+  font-size:14px;
+}
+.lux-input{
+  position:relative;
+  margin-bottom:22px;
+}
+.lux-input input{
+  width:100%;
+  background:transparent;
+  border:none;
+  border-bottom:1px solid rgba(0,0,0,.35);
+  padding:10px 0;
+  outline:none;
+  font-size:15px;
+}
+.lux-input label{
+  position:absolute;
+  left:0;
+  top:50%;
+  transform:translateY(-50%);
+  color:#777;
+  transition:.3s;
+}
+.lux-input input:focus + label,
+.lux-input input:valid + label{
+  top:-10px;
+  font-size:12px;
+  color:#2575fc;
+}
+.lux-btn{
+  width:100%;
+  border:none;
+  padding:14px;
+  border-radius:14px;
+  background:linear-gradient(45deg,#2575fc,#6a11cb);
+  color:white;
+  font-weight:600;
+  letter-spacing:.5px;
+  transition:.3s;
+}
+.lux-btn:hover{transform:scale(1.05);}
+</style>
+
+{% endblock %}
+ 

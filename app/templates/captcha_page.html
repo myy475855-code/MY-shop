@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
 {% block body %}
 
 <div class="container my-5 d-flex justify-content-center">
@@ -7,21 +7,24 @@
       <i class="bi bi-shield-lock"></i> CAPTCHA Verification
     </h3>
 
-    <form method="POST" action="{{ url_for('verify_captcha') }}">
+    <form method="POST" action="{{ url_for('verify_captcha') }}" id="captcha-form">
+      
+      <!-- CAPTCHA Image -->
       <div class="mb-3 text-center">
-        <img src="{{ url_for('captcha_image') }}" alt="CAPTCHA Image" class="img-fluid">
+        <img src="{{ url_for('captcha_image') }}" 
+             alt="CAPTCHA Image" 
+             class="captcha-img rounded-3 shadow-sm">
       </div>
 
-      <div class="mb-3">
-        <label for="captcha" class="form-label">Enter CAPTCHA</label>
-        <input 
-          type="text" 
-          class="form-control form-control-hover" 
-          id="captcha" 
-          name="captcha" 
-          placeholder="Enter the text from image"
-          required
-        >
+      <!-- 5 Box Inputs for CAPTCHA -->
+      <div class="d-flex justify-content-between mb-3">
+        {% for i in range(5) %}
+        <input type="text"
+               name="captcha{{ i }}"
+               maxlength="1"
+               class="form-control text-center captcha-box"
+               required>
+        {% endfor %}
       </div>
 
       <button type="submit" class="btn btn-primary w-100 btn-hover-scale">
@@ -35,26 +38,72 @@
   </div>
 </div>
 
-<!-- Styles -->
+<!-- ===== STYLES ===== -->
 <style>
-  .form-control-hover:focus {
-    border-color: #2575fc;
-    box-shadow: 0 0 5px rgba(37,117,252,0.3);
-    transition: all 0.3s;
-  }
+.captcha-img {
+  max-width: 100%;       /* scales to container */
+  height: auto;          /* maintain aspect ratio */
+  display: block;
+  margin: 0 auto;
+  image-rendering: auto; /* better scaling on retina */
+}
 
-  .btn-hover-scale {
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .btn-hover-scale:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-  }
+.captcha-box {
+  width: 50px;
+  height: 50px;
+  font-size: 1.5rem;
+  border: 2px solid #ced4da;
+  border-radius: 8px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.captcha-box:focus {
+  border-color: #2575fc;
+  box-shadow: 0 0 8px rgba(37,117,252,0.3);
+  outline: none;
+}
+
+.btn-hover-scale {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-hover-scale:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
 </style>
 
 <!-- Animate.css -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 <!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+  // Auto-focus and backspace navigation
+  const inputs = document.querySelectorAll('.captcha-box');
+  inputs.forEach((input, idx) => {
+    input.addEventListener('input', () => {
+      if(input.value.length === 1 && idx < inputs.length - 1){
+        inputs[idx+1].focus();
+      }
+    });
+    input.addEventListener('keydown', (e) => {
+      if(e.key === 'Backspace' && !input.value && idx>0){
+        inputs[idx-1].focus();
+      }
+    });
+  });
+
+  // Combine inputs into hidden field before submit
+  document.getElementById('captcha-form').addEventListener('submit', function(e){
+    const captchaValue = Array.from(inputs).map(i => i.value).join('');
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'captcha';
+    hiddenInput.value = captchaValue;
+    this.appendChild(hiddenInput);
+  });
+</script>
 
 {% endblock %}

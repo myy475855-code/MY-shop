@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
 {% block body %}
 
 <div class="row justify-content-center">
@@ -10,21 +10,19 @@
           Enter the 6-digit code sent to your email.
         </p>
 
-        <form method="POST">
-          <div class="mb-3">
-            <label for="code" class="form-label">Verification Code</label>
+        <form method="POST" id="verify-form">
+          <div class="d-flex justify-content-between mb-3">
+            {% for i in range(6) %}
             <input
               type="text"
-              name="code"
-              id="code"
-              class="form-control text-center fs-4 form-control-hover"
-              maxlength="6"
-              placeholder="123456"
-              pattern="\d{6}"
-              title="Enter 6-digit numeric code"
+              name="code{{ i }}"
+              maxlength="1"
+              class="form-control text-center code-box"
               required
             >
+            {% endfor %}
           </div>
+
           <button type="submit" class="btn btn-success w-100 btn-hover-scale">
             Verify Code
           </button>
@@ -39,10 +37,19 @@
 </div>
 
 <style>
-  .form-control-hover:focus {
+  .code-box {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+    border: 2px solid #ced4da;
+    border-radius: 8px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .code-box:focus {
     border-color: #198754;
     box-shadow: 0 0 8px rgba(25, 135, 84, 0.3);
-    transition: all 0.3s;
+    outline: none;
   }
 
   .btn-hover-scale {
@@ -55,5 +62,33 @@
 </style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<script>
+  // Auto-focus next input after typing
+  const inputs = document.querySelectorAll('.code-box');
+  inputs.forEach((input, idx) => {
+    input.addEventListener('input', () => {
+      if (input.value.length === 1 && idx < inputs.length - 1) {
+        inputs[idx + 1].focus();
+      }
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value && idx > 0) {
+        inputs[idx - 1].focus();
+      }
+    });
+  });
+
+  // Combine all digits into one hidden input before submit
+  document.getElementById('verify-form').addEventListener('submit', function(e) {
+    const code = Array.from(inputs).map(i => i.value).join('');
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'code';
+    hiddenInput.value = code;
+    this.appendChild(hiddenInput);
+  });
+</script>
 
 {% endblock %}

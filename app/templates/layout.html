@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MYY shop</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <main class="container text-center">
+        {% block body %}{% endblock %}    
+    </main>
+    <!-- FLASH MESSAGES -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  {% for category, msg in messages %}
+  Swal.fire({
+    title: "{{ category|capitalize }}",
+    text: "{{ msg }}",
+    icon: "{{ category if category in ['success','error','warning','info'] else 'info' }}",
+    confirmButtonColor: '#2575fc'
+  });
+  {% endfor %}
+});
+</script>
+{% endif %}
+{% endwith %}
+</body>
+</html>

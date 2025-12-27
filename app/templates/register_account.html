@@ -3,48 +3,56 @@
 
 <div class="vh-100 d-flex align-items-center justify-content-center">
 
-  <div class="lux-card animate__animated animate__fadeInDown">
+  <div class="glass-card animate__animated animate__fadeInDown">
 
-    <h3 class="lux-title text-primary"><i class="bi bi-box-arrow-in-right"></i> Login</h3>
-    <p class="lux-sub">Enter your credentials to continue</p>
+    <h3 class="lux-title text-primary"><i class="bi bi-person-plus-fill"></i> Create Account</h3>
+    <p class="lux-sub">Enter your details to start your journey</p>
 
-    <!-- Login Form -->
-    <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+    <form method="POST" action="{{ url_for('register') }}" id="accountForm">
 
       <div class="lux-input">
-        <input type="email" name="email" id="email" required>
+        <input type="text" name="firstName" required>
+        <label>First Name</label>
+      </div>
+
+      <div class="lux-input">
+        <input type="text" name="lastName" required>
+        <label>Last Name</label>
+      </div>
+
+      <div class="lux-input">
+        <input type="tel" name="phone" required>
+        <label>Phone</label>
+      </div>
+
+      <div class="lux-input">
+        <input type="email" name="email" required>
         <label>Email</label>
       </div>
 
       <div class="lux-input">
-        <input type="password" name="password" id="password" required>
+        <input type="password" id="password" name="password" required>
         <label>Password</label>
         <span class="lux-eye" onclick="togglePassword()">👁</span>
       </div>
 
-      <button type="submit" class="lux-btn mt-2">
-        <i class="bi bi-box-arrow-in-right"></i> Login
-      </button>
+      <button type="submit" class="lux-btn mt-3">Next →</button>
     </form>
-
-    <div class="text-center mt-3">
-      <a href="{{ url_for('forgot_password') }}" class="text-decoration-none text-primary fw-semibold">Forgot password?</a>
-      <br>
-      <a href="{{ url_for('register') }}" class="text-decoration-none text-primary fw-semibold">Create an account</a>
-    </div>
-
+    <p>Already have an account?
+          <a href="{{ url_for('login') }}" class="fw-semibold text-primary text-decoration-none">Login</a>
+    </p>
   </div>
 </div>
 
 <style>
-/* Card */
-.lux-card{
+/* Glass Card */
+.glass-card{
   width:400px;
-  background: rgba(255,255,255,.12);
-  backdrop-filter: blur(28px);
-  border-radius:26px;
   padding:45px;
-  box-shadow:0 30px 80px rgba(0,0,0,.25);
+  border-radius:26px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(25px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
   text-align:center;
 }
 /* Titles */
@@ -53,11 +61,11 @@
   margin-bottom:6px;
 }
 .lux-sub{
-  color:#777;
   font-size:14px;
+  color:#777;
   margin-bottom:25px;
 }
-/* Input Fields */
+/* Inputs */
 .lux-input{
   position:relative;
   margin-bottom:20px;
@@ -66,7 +74,7 @@
   width:100%;
   background:transparent;
   border:none;
-  border-bottom:1px solid rgba(0,0,0,.35);
+  border-bottom:1px solid rgba(0,0,0,0.35);
   padding:10px 0;
   font-size:15px;
   outline:none;
@@ -75,7 +83,7 @@
   position:absolute;
   left:0;
   top:50%;
-  transform:translateY(-50%);
+  transform: translateY(-50%);
   color:#777;
   transition:.3s;
 }
@@ -96,12 +104,12 @@
 /* Button */
 .lux-btn{
   width:100%;
-  border:none;
   padding:14px;
   border-radius:14px;
+  border:none;
+  font-weight:600;
   background:linear-gradient(45deg,#2575fc,#6a11cb);
   color:white;
-  font-weight:600;
   transition:.3s;
 }
 .lux-btn:hover{

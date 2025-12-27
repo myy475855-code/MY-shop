@@ -15,47 +15,67 @@ def auth_routes(app):
         text = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
         session['captcha'] = text
 
-        img = Image.new('RGB', (150, 60), color=(255, 255, 255))
+        img = Image.new('RGB', (200, 70), color=(255, 255, 255))
         draw = ImageDraw.Draw(img)
         try:
-            font = ImageFont.truetype("arial.ttf", 40)
+            font = ImageFont.truetype("arial.ttf", 50)
         except:
             font = ImageFont.load_default()
-        draw.text((20, 10), text, fill=(0, 0, 0), font=font)
+        draw.text((20, 10), text, fill=(50, 50, 50), font=font)
 
         buf = io.BytesIO()
         img.save(buf, 'PNG')
         buf.seek(0)
         return send_file(buf, mimetype='image/png')
 
-
-    # ---------- REGISTER ----------
-    @app.route("/register", methods=["GET","POST"])
+    @app.route("/register/account", methods=["GET","POST"])
     def register():
         if request.method == "POST":
-            email = request.form.get("email")
-            if User.query.filter_by(email=email).first():
-                flash("Email already registered", "warning")
+            if User.query.filter_by(email=request.form['email']).first():
+                flash("Email already exists", "danger")
                 return redirect(url_for("register"))
 
+            session['reg_user'] = {
+                "first_name": request.form['firstName'],
+                "last_name": request.form['lastName'],
+                "phone": request.form['phone'],
+                "email": request.form['email'],
+                "password": request.form['password']
+            }
+            return redirect(url_for("register_location"))
+
+        return render_template("register_account.html")
+
+    # ---------- REGISTER ----------
+    @app.route("/register/location", methods=["GET","POST"])
+    def register_location():
+        if 'reg_user' not in session:
+            return redirect(url_for("register"))
+
+        if request.method == "POST":
+            data = session.pop('reg_user')
+
             user = User(
-                email=email,
-                first_name=request.form.get("firstName"),
-                last_name=request.form.get("lastName"),
-                phone=request.form.get("phone"),
-                country=request.form.get("country"),
-                province=request.form.get("province"),
-                city=request.form.get("city"),
-                address=request.form.get("address"),
-                zip_code=request.form.get("zip"),
+                email=data['email'],
+                first_name=data['first_name'],
+                last_name=data['last_name'],
+                phone=data['phone'],
+                country=request.form['country'],
+                province=request.form['province'],
+                city=request.form['city'],
+                address=request.form['address'],
+                zip_code=request.form['zip']
             )
-            user.set_password(request.form.get("password"))
+
+            user.set_password(data['password'])
             db.session.add(user)
             db.session.commit()
-            # After register, redirect to CAPTCHA verification page
-            session['pending_user'] = email  # Save email to session
+
+            session['pending_user'] = user.email
             return redirect(url_for("verify_captcha"))
-        return render_template("register.html")
+
+        return render_template("register_location.html")
+
 
 
     # ---------- LOGIN ----------
@@ -79,8 +99,8 @@ def auth_routes(app):
             return redirect(url_for("login"))
 
         if request.method == "POST":
-            user_input = request.form.get("captcha", "").strip().upper()
-            if user_input == session.get("captcha", "").upper():
+            user_input = request.form.get("captcha", "").strip()
+            if user_input == session.get("captcha", ""):
                 # CAPTCHA correct
                 email = session.pop('pending_user')
                 user = User.query.filter_by(email=email).first()
