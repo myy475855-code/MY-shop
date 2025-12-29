@@ -2,10 +2,14 @@
 {% block body %}
 
 <div class="container my-5 d-flex justify-content-center">
-  <div class="card shadow-lg p-4 rounded-4 animate__animated animate__fadeInDown" style="max-width: 450px; width: 100%;">
-    <h3 class="text-center text-primary mb-4">
+  <div class="glass-card shadow-lg p-4 rounded-4 animate__animated animate__fadeInDown">
+
+    <h3 class="lux-title text-center mb-4">
       <i class="bi bi-shield-lock"></i> CAPTCHA Verification
     </h3>
+    <p class="lux-sub text-center mb-4">
+      Enter the characters shown in the image below.
+    </p>
 
     <form method="POST" action="{{ url_for('verify_captcha') }}" id="captcha-form">
       
@@ -17,68 +21,150 @@
       </div>
 
       <!-- 5 Box Inputs for CAPTCHA -->
-      <div class="d-flex justify-content-between mb-3">
+      <div class="d-flex justify-content-between mb-3 captcha-row p-2">
         {% for i in range(5) %}
         <input type="text"
                name="captcha{{ i }}"
                maxlength="1"
-               class="form-control text-center captcha-box"
+               class="captcha-box"
                required>
         {% endfor %}
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 btn-hover-scale">
+      <button type="submit" class="lux-btn w-100">
         Verify
       </button>
     </form>
 
     <div class="text-center mt-3">
-      <a href="{{ url_for('logout') }}" class="text-decoration-none text-primary fw-semibold">Logout</a>
+      <a href="{{ url_for('logout') }}" class="text-decoration-none text-primary hover-underline fw-semibold">Logout</a>
     </div>
   </div>
 </div>
 
-<!-- ===== STYLES ===== -->
 <style>
+/* Glass Card */
+.glass-card {
+  background: linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.08));
+  backdrop-filter: blur(45px) saturate(180%);
+  -webkit-backdrop-filter: blur(45px) saturate(180%);
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow: inset 0 0 40px rgba(255,255,255,.25), 0 0 80px rgba(120,140,255,.35), 0 30px 80px rgba(0,0,0,.5);
+  border-radius:30px;
+  overflow:hidden;
+  transition:.7s cubic-bezier(.16,1,.3,1);
+  width: 100%;
+  max-width: 450px;
+  padding: 2rem;
+}
+.glass-card:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+/* Titles */
+.lux-title {
+  font-weight:900;
+  color:#fff;
+  letter-spacing:1px;
+  font-size: 1.6rem;
+}
+.lux-sub {
+  font-size:14px;
+  color:#ddd;
+}
+
+/* CAPTCHA Image */
 .captcha-img {
-  max-width: 100%;       /* scales to container */
-  height: auto;          /* maintain aspect ratio */
+  max-width: 100%;
+  height: auto;
   display: block;
   margin: 0 auto;
-  image-rendering: auto; /* better scaling on retina */
+  border-radius: 12px;
 }
 
+/* CAPTCHA Boxes */
+.captcha-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
 .captcha-box {
-  width: 50px;
-  height: 50px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: calc((100% - 4 * 0.5rem) / 5); /* 5 boxes with gap */
+  height: 55px;
   font-size: 1.5rem;
-  border: 2px solid #ced4da;
-  border-radius: 8px;
+  text-align: center;
+  border-radius: 12px;
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(12px);
+  border:1px solid rgba(255,255,255,.25);
+  color:#fff;
+  outline:none;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
-
 .captcha-box:focus {
-  border-color: #2575fc;
-  box-shadow: 0 0 8px rgba(37,117,252,0.3);
-  outline: none;
+  border-color:#8fa3ff;
+  box-shadow:0 0 12px rgba(140,160,255,.5);
 }
 
-.btn-hover-scale {
-  transition: transform 0.2s, box-shadow 0.2s;
+/* Button */
+.lux-btn {
+  padding:14px;
+  border-radius:18px;
+  border:none;
+  font-weight:700;
+  background: linear-gradient(120deg,#2575fc,#6a11cb,#2575fc);
+  background-size:200%;
+  animation:gradientMove 4s linear infinite;
+  color:#fff;
+  transition:.4s;
+}
+.lux-btn:hover {
+  box-shadow:0 0 30px rgba(140,160,255,.7);
+  transform:translateY(-3px) scale(1.05);
 }
 
-.btn-hover-scale:hover {
-  transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+/* Hover underline link */
+.hover-underline:hover {
+  text-decoration: underline;
+  color: #2575fc;
+  transition: all 0.2s;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .captcha-box {
+    height: 50px;
+    font-size: 1.3rem;
+  }
+  .lux-title {
+    font-size: 1.5rem;
+  }
+  .lux-sub {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 576px) {
+  .glass-card {
+    padding: 1rem;
+  }
+  .captcha-box {
+    height: 45px;
+    font-size: 1.2rem;
+  }
+  .lux-title {
+    font-size: 1.4rem;
+  }
+}
+
+@keyframes gradientMove {
+  0% { background-position:0%; }
+  100% { background-position:200%; }
 }
 </style>
 
-<!-- Animate.css -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
-<!-- ===== SCRIPTS ===== -->
 <script>
   // Auto-focus and backspace navigation
   const inputs = document.querySelectorAll('.captcha-box');
@@ -105,5 +191,8 @@
     this.appendChild(hiddenInput);
   });
 </script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
 
 {% endblock %}

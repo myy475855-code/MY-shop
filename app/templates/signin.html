@@ -1,125 +1,164 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<div class="vh-100 d-flex align-items-center justify-content-center">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<div class="vh-100 d-flex align-items-center justify-content-center lux-bg">
 
   <div class="lux-card animate__animated animate__fadeInDown">
 
-    <h3 class="lux-title text-primary"><i class="bi bi-box-arrow-in-right"></i> Login</h3>
-    <p class="lux-sub">Enter your credentials to continue</p>
+    <h3 class="lux-title"><i class="bi bi-box-arrow-in-right"></i> LOGIN</h3>
+    <p class="lux-sub">Sign in to your account</p>
 
-    <!-- Login Form -->
-    <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+    <form method="POST" action="{{ url_for('login') }}">
 
       <div class="lux-input">
-        <input type="email" name="email" id="email" required>
+        <input type="email" name="email" required>
         <label>Email</label>
       </div>
 
       <div class="lux-input">
-        <input type="password" name="password" id="password" required>
+        <input type="password" id="password" name="password" required>
         <label>Password</label>
         <span class="lux-eye" onclick="togglePassword()">👁</span>
       </div>
 
-      <button type="submit" class="lux-btn mt-2">
-        <i class="bi bi-box-arrow-in-right"></i> Login
-      </button>
+      <button class="lux-btn">LOGIN</button>
+
     </form>
 
-    <div class="text-center mt-3">
-      <a href="{{ url_for('forgot_password') }}" class="text-decoration-none text-primary fw-semibold">Forgot password?</a>
-      <br>
-      <a href="{{ url_for('register') }}" class="text-decoration-none text-primary fw-semibold">Create an account</a>
+    <div class="lux-links">
+      <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
+      <a href="{{ url_for('register') }}">Create account</a>
     </div>
 
   </div>
 </div>
 
 <style>
-/* Card */
+
+.lux-bg::before{
+  content:"";
+  position:absolute;inset:0;
+  background:
+   radial-gradient(circle at 15% 20%,rgba(106,17,203,.35),transparent 40%),
+   radial-gradient(circle at 85% 80%,rgba(37,117,252,.35),transparent 40%);
+  filter:blur(80px);
+}
+
+/* GLASS CARD */
 .lux-card{
-  width:400px;
-  background: rgba(255,255,255,.12);
-  backdrop-filter: blur(28px);
-  border-radius:26px;
-  padding:45px;
-  box-shadow:0 30px 80px rgba(0,0,0,.25);
-  text-align:center;
-}
-/* Titles */
-.lux-title{
-  font-weight:700;
-  margin-bottom:6px;
-}
-.lux-sub{
-  color:#777;
-  font-size:14px;
-  margin-bottom:25px;
-}
-/* Input Fields */
-.lux-input{
+  width:420px;
+  padding:50px;
+  border-radius:30px;
+  background:linear-gradient(135deg,
+    rgba(255,255,255,.28),
+    rgba(255,255,255,.08)
+  );
+  backdrop-filter:blur(45px) saturate(180%);
+  -webkit-backdrop-filter:blur(45px) saturate(180%);
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:
+    inset 0 0 40px rgba(255,255,255,.25),
+    0 0 80px rgba(120,140,255,.45),
+    0 40px 140px rgba(0,0,0,.7);
   position:relative;
-  margin-bottom:20px;
+  overflow:hidden;
+  transition:.7s cubic-bezier(.16,1,.3,1);
 }
+.lux-card:hover{
+  transform:translateY(-10px) scale(1.03);
+}
+
+/* GLASS SHINE */
+.lux-card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    120deg,
+    transparent 35%,
+    rgba(255,255,255,.45),
+    transparent 65%
+  );
+  opacity:.15;
+  pointer-events:none;
+}
+
+/* Text */
+.lux-title{color:white;font-weight:900;letter-spacing:2px;}
+.lux-sub{color:#ddd;margin-bottom:35px}
+
+/* Glass Inputs */
+.lux-input{position:relative;margin-bottom:26px;}
 .lux-input input{
   width:100%;
-  background:transparent;
-  border:none;
-  border-bottom:1px solid rgba(0,0,0,.35);
-  padding:10px 0;
-  font-size:15px;
+  background:rgba(255,255,255,.12);
+  backdrop-filter:blur(12px);
+  border-radius:14px;
+  padding:14px 16px;
+  border:1px solid rgba(255,255,255,.25);
+  color:white;
   outline:none;
+  transition:.3s;
+}
+.lux-input input:focus{
+  border-color:#8fa3ff;
+  box-shadow:0 0 20px rgba(140,160,255,.6);
 }
 .lux-input label{
   position:absolute;
-  left:0;
-  top:50%;
+  left:16px;top:50%;
   transform:translateY(-50%);
-  color:#777;
-  transition:.3s;
+  color:#ddd;
+  pointer-events:none;
+  transition:.4s cubic-bezier(.16,1,.3,1);
 }
-.lux-input input:focus + label,
-.lux-input input:valid + label{
+.lux-input input:focus+label,
+.lux-input input:valid+label{
   top:-10px;
   font-size:12px;
-  color:#2575fc;
+  color:#b6c2ff;
 }
-/* Eye toggle */
-.lux-eye{
-  position:absolute;
-  right:0;
-  top:50%;
-  transform:translateY(-50%);
-  cursor:pointer;
-}
+
+/* Eye */
+.lux-eye{position:absolute;right:14px;top:50%;cursor:pointer}
+
 /* Button */
 .lux-btn{
+  margin-top:10px;
   width:100%;
-  border:none;
-  padding:14px;
-  border-radius:14px;
-  background:linear-gradient(45deg,#2575fc,#6a11cb);
-  color:white;
-  font-weight:600;
-  transition:.3s;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(120deg,#6a11cb,#2575fc,#6a11cb);
+  background-size:200%;
+  animation:gradientMove 4s linear infinite;
+  border:none;color:white;font-weight:800;letter-spacing:1px;
+  transition:.4s;
 }
 .lux-btn:hover{
-  transform:scale(1.05);
-  box-shadow:0 5px 15px rgba(0,0,0,0.15);
+  box-shadow:0 0 35px rgba(140,160,255,1);
+  transform:translateY(-4px) scale(1.05);
+}
+
+/* Links */
+.lux-links a{
+  display:block;margin-top:12px;
+  color:#b6c2ff;text-decoration:none;font-weight:600;
+}
+
+@keyframes gradientMove{
+  0%{background-position:0%}
+  100%{background-position:200%}
 }
 </style>
 
 <script>
 function togglePassword(){
-  const p = document.getElementById("password");
-  p.type = p.type === "password" ? "text" : "password";
+  const p=document.getElementById("password");
+  p.type=p.type==="password"?"text":"password";
 }
 </script>
-
-<!-- Animate.css -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 {% endblock %}

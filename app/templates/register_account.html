@@ -1,11 +1,14 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<div class="vh-100 d-flex align-items-center justify-content-center">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
+
+<div class="vh-100 d-flex align-items-center justify-content-center lux-bg">
 
   <div class="glass-card animate__animated animate__fadeInDown">
 
-    <h3 class="lux-title text-primary"><i class="bi bi-person-plus-fill"></i> Create Account</h3>
+    <h3 class="lux-title"><i class="bi bi-person-plus-fill"></i> Create Account</h3>
     <p class="lux-sub">Enter your details to start your journey</p>
 
     <form method="POST" action="{{ url_for('register') }}" id="accountForm">
@@ -38,96 +41,128 @@
 
       <button type="submit" class="lux-btn mt-3">Next →</button>
     </form>
-    <p>Already have an account?
-          <a href="{{ url_for('login') }}" class="fw-semibold text-primary text-decoration-none">Login</a>
+
+    <p class="mt-3">Already have an account?
+      <a href="{{ url_for('login') }}" class="fw-semibold text-primary text-decoration-none">Login</a>
     </p>
+
   </div>
 </div>
 
 <style>
+
+.lux-bg::before{
+  content:"";
+  position:absolute;inset:0;
+  background:
+   radial-gradient(circle at 15% 20%,rgba(106,17,203,.35),transparent 40%),
+   radial-gradient(circle at 85% 80%,rgba(37,117,252,.35),transparent 40%);
+  filter:blur(80px);
+}
+
 /* Glass Card */
 .glass-card{
-  width:400px;
-  padding:45px;
-  border-radius:26px;
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(25px);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  width:420px;
+  padding:50px;
+  border-radius:30px;
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.08));
+  backdrop-filter:blur(45px) saturate(180%);
+  -webkit-backdrop-filter:blur(45px) saturate(180%);
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:
+    inset 0 0 40px rgba(255,255,255,.25),
+    0 0 80px rgba(120,140,255,.45),
+    0 40px 140px rgba(0,0,0,.7);
   text-align:center;
-}
-/* Titles */
-.lux-title{
-  font-weight:700;
-  margin-bottom:6px;
-}
-.lux-sub{
-  font-size:14px;
-  color:#777;
-  margin-bottom:25px;
-}
-/* Inputs */
-.lux-input{
   position:relative;
-  margin-bottom:20px;
+  overflow:hidden;
+  transition:.7s cubic-bezier(.16,1,.3,1);
 }
+.glass-card:hover{
+  transform:translateY(-10px) scale(1.03);
+}
+.glass-card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg, transparent 35%, rgba(255,255,255,.45), transparent 65%);
+  opacity:.15;
+  pointer-events:none;
+}
+
+/* Text */
+.lux-title{color:white;font-weight:900;letter-spacing:2px;}
+.lux-sub{color:#ddd;margin-bottom:35px}
+
+/* Inputs */
+.lux-input{position:relative;margin-bottom:26px;}
 .lux-input input{
   width:100%;
-  background:transparent;
-  border:none;
-  border-bottom:1px solid rgba(0,0,0,0.35);
-  padding:10px 0;
-  font-size:15px;
+  background:rgba(255,255,255,.12);
+  backdrop-filter:blur(12px);
+  border-radius:14px;
+  padding:14px 16px;
+  border:1px solid rgba(255,255,255,.25);
+  color:white;
   outline:none;
+  transition:.3s;
+}
+.lux-input input:focus{
+  border-color:#8fa3ff;
+  box-shadow:0 0 20px rgba(140,160,255,.6);
 }
 .lux-input label{
   position:absolute;
-  left:0;
-  top:50%;
-  transform: translateY(-50%);
-  color:#777;
-  transition:.3s;
+  left:16px;top:50%;
+  transform:translateY(-50%);
+  color:#ddd;
+  pointer-events:none;
+  transition:.4s cubic-bezier(.16,1,.3,1);
 }
-.lux-input input:focus + label,
-.lux-input input:valid + label{
+.lux-input input:focus+label,
+.lux-input input:valid+label{
   top:-10px;
   font-size:12px;
-  color:#2575fc;
+  color:#b6c2ff;
 }
+
 /* Eye toggle */
-.lux-eye{
-  position:absolute;
-  right:0;
-  top:50%;
-  transform:translateY(-50%);
-  cursor:pointer;
-}
+.lux-eye{position:absolute;right:14px;top:50%;cursor:pointer}
+
 /* Button */
 .lux-btn{
+  margin-top:10px;
   width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:none;
-  font-weight:600;
-  background:linear-gradient(45deg,#2575fc,#6a11cb);
-  color:white;
-  transition:.3s;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(120deg,#6a11cb,#2575fc,#6a11cb);
+  background-size:200%;
+  animation:gradientMove 4s linear infinite;
+  border:none;color:white;font-weight:800;letter-spacing:1px;
+  transition:.4s;
 }
 .lux-btn:hover{
-  transform:scale(1.05);
-  box-shadow:0 5px 15px rgba(0,0,0,0.15);
+  box-shadow:0 0 35px rgba(140,160,255,1);
+  transform:translateY(-4px) scale(1.05);
+}
+
+/* Links */
+.lux-links a{
+  display:block;margin-top:12px;
+  color:#b6c2ff;text-decoration:none;font-weight:600;
+}
+
+@keyframes gradientMove{
+  0%{background-position:0%}
+  100%{background-position:200%}
 }
 </style>
 
 <script>
 function togglePassword(){
-  const p = document.getElementById("password");
-  p.type = p.type === "password" ? "text" : "password";
+  const p=document.getElementById("password");
+  p.type=p.type==="password"?"text":"password";
 }
 </script>
-
-<!-- Animate.css -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 {% endblock %}

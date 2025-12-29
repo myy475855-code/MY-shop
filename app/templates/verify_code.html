@@ -1,94 +1,187 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<div class="row justify-content-center">
-  <div class="col-md-6 col-lg-4">
-    <div class="card shadow-lg rounded-4 animate__animated animate__fadeInUp">
-      <div class="card-body p-4">
-        <h3 class="text-center text-primary mb-3"><i class="bi bi-shield-lock"></i> Verify Code</h3>
-        <p class="text-muted text-center mb-4">
-          Enter the 6-digit code sent to your email.
-        </p>
+<div class="container my-5 d-flex justify-content-center">
+  <div class="glass-card shadow-lg p-4 rounded-4 animate__animated animate__fadeInDown">
 
-        <form method="POST" id="verify-form">
-          <div class="d-flex justify-content-between mb-3">
-            {% for i in range(6) %}
-            <input
-              type="text"
-              name="code{{ i }}"
-              maxlength="1"
-              class="form-control text-center code-box"
-              required
-            >
-            {% endfor %}
-          </div>
+    <!-- Title -->
+    <h3 class="lux-title text-center mb-4">
+      <i class="bi bi-shield-lock"></i> Verify Code
+    </h3>
 
-          <button type="submit" class="btn btn-success w-100 btn-hover-scale">
-            Verify Code
-          </button>
-        </form>
+    <!-- Subtitle -->
+    <p class="lux-sub text-center mb-4">
+      Enter the 6-digit code sent to your email.
+    </p>
 
-        <div class="text-center mt-3">
-          <small class="text-muted">Didn't receive the code? <a href="{{ url_for('forgot_password') }}" class="text-decoration-none text-primary">Resend</a></small>
-        </div>
+    <!-- Verification Form -->
+    <form method="POST" id="verify-form">
+      <div class="d-flex justify-content-between mb-3 code-row">
+        {% for i in range(6) %}
+        <input type="text" name="code{{ i }}" maxlength="1" class="code-box" required>
+        {% endfor %}
       </div>
+
+      <button type="submit" class="lux-btn w-100">Verify</button>
+    </form>
+
+    <!-- Resend Link -->
+    <div class="text-center mt-3">
+      <small class="text-muted">
+        Didn't receive the code? 
+        <a href="{{ url_for('forgot_password') }}" class="text-decoration-none text-primary hover-underline fw-semibold">Resend</a>
+      </small>
     </div>
   </div>
 </div>
 
+<!-- Styles -->
 <style>
+/* Glassmorphic card */
+.glass-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.28), rgba(255,255,255,0.08));
+  backdrop-filter: blur(45px) saturate(180%);
+  -webkit-backdrop-filter: blur(45px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: inset 0 0 40px rgba(255,255,255,0.25), 0 0 80px rgba(120,140,255,0.35), 0 30px 80px rgba(0,0,0,0.5);
+  border-radius: 30px;
+  width: 100%;
+  max-width: 400px;   /* slightly smaller for compact look */
+  padding: 2rem;
+  transition: 0.7s cubic-bezier(.16,1,.3,1);
+}
+.glass-card:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+/* Titles */
+.lux-title {
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 1px;
+  font-size: 1.6rem;
+}
+.lux-sub {
+  font-size: 14px;
+  color: #ddd;
+}
+
+/* Code inputs */
+.code-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.code-box {
+  width: 50px;           /* fixed width for compact boxes */
+  height: 50px;
+  font-size: 1.2rem;
+  text-align: center;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.code-box:focus {
+  border-color: #8fa3ff;
+  box-shadow: 0 0 12px rgba(140,160,255,0.5);
+}
+
+/* Button */
+.lux-btn {
+  padding: 14px;
+  border-radius: 18px;
+  border: none;
+  font-weight: 700;
+  background: linear-gradient(120deg, #2575fc, #6a11cb, #2575fc);
+  background-size: 200%;
+  animation: gradientMove 4s linear infinite;
+  color: #fff;
+  transition: 0.4s;
+}
+.lux-btn:hover {
+  box-shadow: 0 0 30px rgba(140,160,255,0.7);
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* Hover underline link */
+.hover-underline:hover {
+  text-decoration: underline;
+  color: #2575fc;
+  transition: all 0.2s;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .glass-card {
+    max-width: 90%;
+    padding: 1.8rem;
+  }
   .code-box {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+  .lux-title {
     font-size: 1.5rem;
-    border: 2px solid #ced4da;
-    border-radius: 8px;
-    transition: border-color 0.3s, box-shadow 0.3s;
   }
+}
 
-  .code-box:focus {
-    border-color: #198754;
-    box-shadow: 0 0 8px rgba(25, 135, 84, 0.3);
-    outline: none;
+@media (max-width: 576px) {
+  .glass-card {
+    padding: 1.5rem;
   }
+  .code-box {
+    width: 25px;
+    height: 25px;
+    font-size: 0.75rem;
+  }
+  .lux-title {
+    font-size: 1.4rem;
+  }
+  .code-row {
+    gap: 0.3rem;
+  }
+}
 
-  .btn-hover-scale {
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .btn-hover-scale:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-  }
+@keyframes gradientMove {
+  0% { background-position: 0%; }
+  100% { background-position: 200%; }
+}
 </style>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-
+<!-- Scripts -->
 <script>
-  // Auto-focus next input after typing
-  const inputs = document.querySelectorAll('.code-box');
-  inputs.forEach((input, idx) => {
-    input.addEventListener('input', () => {
-      if (input.value.length === 1 && idx < inputs.length - 1) {
-        inputs[idx + 1].focus();
-      }
-    });
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' && !input.value && idx > 0) {
-        inputs[idx - 1].focus();
-      }
-    });
+const inputs = document.querySelectorAll('.code-box');
+inputs.forEach((input, idx) => {
+  input.addEventListener('input', () => {
+    if(input.value.length === 1 && idx < inputs.length - 1){
+      inputs[idx+1].focus();
+    }
   });
-
-  // Combine all digits into one hidden input before submit
-  document.getElementById('verify-form').addEventListener('submit', function(e) {
-    const code = Array.from(inputs).map(i => i.value).join('');
-    const hiddenInput = document.createElement('input');
-    hiddenInput.type = 'hidden';
-    hiddenInput.name = 'code';
-    hiddenInput.value = code;
-    this.appendChild(hiddenInput);
+  input.addEventListener('keydown', (e) => {
+    if(e.key === 'Backspace' && !input.value && idx > 0){
+      inputs[idx-1].focus();
+    }
   });
+});
+
+// Combine inputs into hidden field before submit
+document.getElementById('verify-form').addEventListener('submit', function(e){
+  const codeValue = Array.from(inputs).map(i => i.value).join('');
+  const hiddenInput = document.createElement('input');
+  hiddenInput.type = 'hidden';
+  hiddenInput.name = 'code';
+  hiddenInput.value = codeValue;
+  this.appendChild(hiddenInput);
+});
 </script>
+
+<!-- External CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
 
 {% endblock %}
