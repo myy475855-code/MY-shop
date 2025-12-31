@@ -1,0 +1,163 @@
+/* ================= GLOBAL STYLES ================= */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  color: #333;
+}
+
+/* ================= NAVBAR ================= */
+.navbar {
+  background: linear-gradient(90deg, #6a11cb, #2575fc);
+  padding: 1rem 2rem;
+}
+
+.navbar-brand {
+  font-size: 1.8rem;
+  color: #fff !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.navbar-nav .nav-link {
+  color: #fff !important;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #ffd700 !important;
+  transform: scale(1.05);
+}
+
+.dropdown-menu {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+.nav-search {
+  position: relative;
+}
+
+.search-bar {
+  position: relative;
+  width: 320px;
+}
+
+.search-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 50px 0 16px;
+  border-radius: 25px;
+  border: 1px solid white;
+  background: none;
+  color: #fff;
+}
+
+.search-input::placeholder {
+  color: #aaa;
+}
+
+.search-btn {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+  border: none;
+}
+
+.mobile-search-btn {
+  color: #fff;
+  font-size: 20px;
+  padding: 6px 10px;
+}
+
+.search-dropdown {
+  min-width: 340px;
+}
+
+@media (max-width: 576px) {
+  .search-dropdown {
+    min-width: 100vw;
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
+}
+
+/* ================= FOOTER ================= */
+footer {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 3rem 0;
+  position: relative;
+}
+
+footer h5 {
+  color: #ffd700;
+  margin-bottom: 1rem;
+}
+
+footer .social-links a {
+  font-size: 1.5rem;
+  color: #fff;
+  margin-right: 1rem;
+  transition: color 0.3s, transform 0.3s;
+}
+
+footer .social-links a:hover {
+  color: #ffd700;
+  transform: translateY(-3px);
+}
+
+footer p {
+  margin: 0.2rem 0;
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes fadeIn {
+  0% {opacity: 0; transform: translateY(-10px);}
+  100% {opacity: 1; transform: translateY(0);}
+}
+
+@keyframes fadeInUp {
+  0% {opacity: 0; transform: translateY(20px);}
+  100% {opacity: 1; transform: translateY(0);}
+}
+
+/* ================= CONTACT FORM ================= */
+.contact-form input,
+.contact-form textarea {
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  padding: 0.75rem;
+  transition: all 0.3s;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(255,215,0,0.5);
+  outline: none;
+}
+
+.contact-form button {
+  border-radius: 25px;
+  padding: 0.6rem 2rem;
+  background: linear-gradient(90deg, #6a11cb, #2575fc);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.contact-form button:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #2575fc, #a611cbff);
+}

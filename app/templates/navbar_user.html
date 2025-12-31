@@ -1,0 +1,25 @@
+{% if current_user.email == 'myy502388@gmail.com' %}
+  <li class="nav-item">
+    <a class="nav-link fw-bold text-warning" href="{{ url_for('upload_product') }}">
+      <i class="bi bi-upload"></i> Upload
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link fw-bold text-warning" href="{{ url_for('admin_dashboard') }}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+  </li>
+{% endif %}
+
+<li class="nav-item dropdown">
+  <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+    <i class="bi bi-person-circle"></i>
+    {{ current_user.first_name or 'Account' }}
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
+    <li><a class="dropdown-item" href="{{ url_for('orders') }}">Orders</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
+  </ul>
+</li>

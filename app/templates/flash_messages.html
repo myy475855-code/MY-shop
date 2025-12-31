@@ -1,0 +1,17 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        {% for category, msg in messages %}
+          Swal.fire({
+            title: "{{ category|capitalize }}",
+            text: "{{ msg }}",
+            icon: "{{ category if category in ['success','error','warning','info'] else 'info' }}",
+            confirmButtonColor: '#2575fc',
+            confirmButtonText: 'OK'
+          });
+        {% endfor %}
+      });
+    </script>
+  {% endif %}
+{% endwith %}

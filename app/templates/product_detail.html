@@ -6,10 +6,7 @@
 
     <!-- ===== PRODUCT IMAGES SLIDER ===== -->
     <div class="col-lg-6">
-
-      <div id="productCarousel"
-           class="carousel slide shadow rounded-4"
-           data-bs-ride="carousel">
+      <div id="productCarousel" class="carousel slide shadow-lg rounded-4 overflow-hidden" data-bs-ride="carousel">
 
         <!-- Indicators -->
         <div class="carousel-indicators">
@@ -27,25 +24,19 @@
           {% for image in images %}
             <div class="carousel-item {% if loop.first %}active{% endif %}">
               <img src="{{ url_for('static', filename='uploads/' ~ image) }}"
-                   class="d-block w-100 product-img"
+                   class="d-block w-100 product-img shadow-sm"
                    alt="{{ product.name }}">
             </div>
           {% endfor %}
         </div>
 
         <!-- Controls -->
-        <button class="carousel-control-prev"
-                type="button"
-                data-bs-target="#productCarousel"
-                data-bs-slide="prev">
-          <span class="carousel-control-prev-icon"></span>
+        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon bg-dark rounded-circle p-2"></span>
         </button>
 
-        <button class="carousel-control-next"
-                type="button"
-                data-bs-target="#productCarousel"
-                data-bs-slide="next">
-          <span class="carousel-control-next-icon"></span>
+        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon bg-dark rounded-circle p-2"></span>
         </button>
 
       </div>
@@ -53,42 +44,58 @@
 
     <!-- ===== PRODUCT DETAILS ===== -->
     <div class="col-lg-6">
-      <h2 class="fw-bold mb-2 text-primary">{{ product.name }}</h2>
+      <h2 class="fw-bold mb-3 text-primary">{{ product.name }}</h2>
 
-      <p class="text-muted">
-        Category:
-        <span class="fw-semibold">{{ product.categories }}</span>
+      <p class="text-muted mb-2">
+        Category: <span class="fw-semibold">{{ product.categories }}</span>
       </p>
 
-        <h4 class="mb-3">
-          <span class="text-muted">
-            ${{ '%.2f'|format(product.price) }}
-          </span>
-          <span class="text-success fw-bold ms-2">
-            {{ '%.2f'|format(product.discount_price/product.price*100) }}%
-          </span>
-        </h4>
+      <div class="d-flex align-items-baseline mb-3 gap-3">
+        <h4 class="text-dark fw-bold mb-0">${{ '%.2f'|format(product.price) }}</h4>
+        {% if product.discount_price < product.price %}
+          <span class="badge bg-success fs-6">{{ '%.0f'|format(product.discount_price/product.price*100) }}% OFF</span>
+        {% endif %}
+      </div>
 
-      <p><strong>Description:</strong> {{ product.description }}</p>
+      <p class="mb-3"><strong>Description:</strong> {{ product.description }}</p>
 
       {% if product.specifications %}
-        <p><strong>Specifications:</strong></p>
-        
-          {% for spec in product.specifications.split('\n') %}
-            <p>{{ spec }}</p>
-          {% endfor %}
+        <div class="mb-3">
+          <strong>Specifications:</strong>
+          <ul class="list-group list-group-flush mt-2">
+            {% for spec in product.specifications.split('\n') %}
+              <li class="list-group-item py-1 px-0">{{ spec }}</li>
+            {% endfor %}
+          </ul>
+        </div>
       {% endif %}
 
-      <div class="d-flex gap-3 mt-4 flex-wrap">
+      <!-- Rating & Favorites -->
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <span class="fw-bold text-warning fs-5">⭐ {{ avg_rating }}/5</span>
+        {% for i in range(1,6) %}
+          <a href="{{ url_for('rate_product', product_id=product.id, stars=i) }}"
+            class="fs-4 text-decoration-none {% if user_rating >= i %}text-warning{% else %}text-muted{% endif %}">
+            ★
+          </a>
+        {% endfor %}
+
+        <a href="{{ url_for('toggle_favorite', product_id=product.id) }}" class="fs-3 ms-3">
+          {% if is_fav %}❤️{% else %}🤍{% endif %}
+        </a>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex gap-3 flex-wrap">
         <form method="POST" action="{{ url_for('cart_add', product_id=product.id) }}">
-          <button type="submit" class="btn btn-primary btn-lg btn-hover-scale">
-            <i class="bi bi-cart-plus"></i> Add to Cart
+          <button type="submit" class="btn btn-primary btn-lg btn-hover-scale shadow-sm">
+            <i class="bi bi-cart-plus me-2"></i> Add to Cart
           </button>
         </form>
 
         <form method="POST" action="{{ url_for('cart_add', product_id=product.id) }}">
-          <button type="submit" class="btn btn-success btn-lg btn-hover-scale">
-            <i class="bi bi-bag-check"></i> Buy Now
+          <button type="submit" class="btn btn-success btn-lg btn-hover-scale shadow-sm">
+            <i class="bi bi-bag-check me-2"></i> Buy Now
           </button>
         </form>
       </div>
@@ -97,39 +104,37 @@
   </div>
 </section>
 
-<!-- ===== COMMENT SECTION (UNCHANGED) ===== -->
+<!-- ===== COMMENT SECTION ===== -->
 <section class="container mb-5">
   <div class="card shadow-sm rounded-4">
     <div class="card-header bg-primary text-white">
-      <h5 class="mb-0">
-        <i class="bi bi-chat-dots"></i> Product Comments
-      </h5>
+      <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Product Comments</h5>
     </div>
 
     <div class="card-body">
       {% if current_user.is_authenticated %}
         <form method="POST" class="mb-4">
-          <textarea name="comment" class="form-control mb-2" rows="3"
+          <textarea name="comment" class="form-control mb-2 rounded-3" rows="3"
                     placeholder="Write your review..." required></textarea>
-          <button type="submit" class="btn btn-primary btn-hover-scale">
-            <i class="bi bi-send"></i> Post Comment
+          <button type="submit" class="btn btn-primary btn-hover-scale mt-2">
+            <i class="bi bi-send me-1"></i> Post Comment
           </button>
         </form>
       {% else %}
         <div class="alert alert-warning">
-          Please <a href="{{ url_for('login') }}">sign in</a> to post a comment.
+          Please <a href="{{ url_for('login') }}" class="text-decoration-underline">sign in</a> to post a comment.
         </div>
       {% endif %}
 
       <div class="border-top pt-3">
         {% for c in comments %}
-          <div class="mb-3 p-2 rounded shadow-sm">
+          <div class="mb-3 p-3 rounded shadow-sm bg-light">
             <strong>{{ c.name }}</strong>
-            <small class="text-muted">— {{ c.created_at.strftime('%b %d, %Y') }}</small>
-            <p>{{ c.content }}</p>
+            <small class="text-muted ms-2">— {{ c.created_at.strftime('%b %d, %Y') }}</small>
+            <p class="mb-0">{{ c.content }}</p>
           </div>
         {% else %}
-          <p class="text-muted">No comments yet.</p>
+          <p class="text-muted">No comments yet. Be the first to comment!</p>
         {% endfor %}
       </div>
     </div>
@@ -140,7 +145,7 @@
   .product-img {
     max-height: 500px;
     object-fit: cover;
-    transition: transform 0.3s;
+    transition: transform 0.3s ease;
   }
 
   .product-img:hover {
@@ -149,6 +154,11 @@
 
   .btn-hover-scale:hover {
     transform: scale(1.05);
+  }
+
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    filter: invert(1);
   }
 </style>
 

@@ -1,0 +1,29 @@
+<footer id="contact">
+  <div class="container">
+    <div class="row">
+
+      <div class="col-md-6 mb-4 contact-form">
+        <h5>Contact Us</h5>
+        <form action="{{ url_for('contact') }}" method="POST">
+          <div class="mb-3">
+            <input type="email" class="form-control" name="email" placeholder="Enter your email" required>
+          </div>
+          <div class="mb-3">
+            <textarea class="form-control" name="message" rows="3" placeholder="Enter your reason or message" required></textarea>
+          </div>
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+
+      <div class="col-md-6">
+        <h5>Connect with Us</h5>
+        <p class="mt-3">Email: myy502388@gmail.com</p>
+        <p>Phone: +92 326 551 1189</p>
+      </div>
+
+    </div>
+
+    <hr class="my-4" style="border-color: #444;">
+    <p class="text-center mb-0">&copy; 2025 MYY shop. All rights reserved.</p>
+  </div>
+</footer>
