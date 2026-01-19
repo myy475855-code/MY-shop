@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MYY shop</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body{
+      background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+      height:100vh;
+    }
+  </style>
+</head>
+<body class=" d-flex justify-content-center align-items-center">
+    <main class="container back text-center p-5">
+        {% block body %}{% endblock %}    
+    </main>
+    <!-- FLASH MESSAGES -->
+    {% include 'flash_messages.html' %}
+
+</body>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+function googleLogin() {
+  google.accounts.id.prompt();
+}
+
+function handleGoogleLogin(response) {
+  fetch("/auth/google", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id_token: response.credential
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.redirect) {
+      window.location.href = data.redirect;
+    } else if (data.error) {
+      alert(data.error);
+    }
+  });
+}
+</script>
+
+</html>

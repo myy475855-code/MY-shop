@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block body %}
+
+<section class="container my-5">
+  <h3 class="text-primary mb-4 animate__animated animate__fadeInDown">
+    <i class="bi bi-heart-fill"></i> My Favorites
+  </h3>
+
+  {% if products %}
+    <div class="row g-4">
+      {% for p in products %}
+        <div class="col-md-3">
+          <div class="card h-100 shadow-sm card-hover animate__animated animate__fadeInUp" style="animation-delay: {{ loop.index * 0.1 }}s;">
+
+            <!-- Product image -->
+            {% if p.main_image %}
+              <img src="{{ url_for('static', filename='uploads/' ~ p.main_image) }}" class="card-img-top" alt="{{ p.name }}">
+            {% else %}
+              <img src="{{ url_for('static', filename='placeholder.png') }}" class="card-img-top" alt="No image">
+            {% endif %}
+
+            <div class="card-body text-center">
+              <!-- Product name -->
+              <h6 class="card-title">{{ p.name }}</h6>
+
+              <!-- Price with discount -->
+              {% if p.discount_price and p.discount_price < p.price %}
+                <p class="mb-1">
+                  <span class="text-danger fw-bold">
+                    PKR {{ '%.2f'|format(p.discount_price) }}
+                  </span>
+                  <span class="text-muted ms-2" style="text-decoration: line-through;">
+                    PKR {{ '%.2f'|format(p.price) }}
+                  </span>
+                  <span class="text-success fw-bold ms-1">
+                    {{ ((p.price - p.discount_price) / p.price * 100)|round(0) }}% OFF
+                  </span>
+                </p>
+              {% else %}
+                <p class="fw-bold text-dark mb-1">
+                  PKR {{ '%.2f'|format(p.price) }}
+                </p>
+              {% endif %}
+
+              <!-- Average rating -->
+              {% set avg_rating = p.ratings|map(attribute='stars')|sum / (p.ratings|length if p.ratings|length > 0 else 1) %}
+              <div class="mb-2 text-warning">
+                {% for i in range(1,6) %}
+                  {% if i <= avg_rating %}
+                    ★
+                  {% else %}
+                    ☆
+                  {% endif %}
+                {% endfor %}
+                <span class="text-dark ms-1">({{ p.ratings|length }})</span>
+              </div>
+
+              <!-- Buttons -->
+              <div class="d-flex justify-content-center gap-2">
+                <a href="{{ url_for('product_detail', product_id=p.id) }}" class="btn btn-primary btn-sm btn-hover-scale">View</a>
+                <a href="{{ url_for('toggle_favorite', product_id=p.id) }}" class="btn btn-outline-danger btn-sm btn-hover-scale">Remove ❤️</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info animate__animated animate__fadeInUp">
+      <i class="bi bi-info-circle"></i> You have no favorite products yet. Browse products and add them to your favorites!
+    </div>
+  {% endif %}
+
+</section>
+
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<style>
+  /* Consistent with admin dashboard styling */
+  body {
+    background: #f8f9fa;
+  }
+  h3 {
+    color: #1e3c72;
+    font-size: 1.8rem;
+  }
+  .card {
+    border: none;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  .card-img-top {
+    height: 180px;
+    object-fit: cover;
+    transition: transform 0.3s;
+    border-radius: 15px 15px 0 0;
+  }
+  .card-img-top:hover {
+    transform: scale(1.05);
+  }
+  .btn-hover-scale {
+    transition: transform 0.2s ease;
+  }
+  .btn-hover-scale:hover {
+    transform: scale(1.05);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 20px;
+  }
+  .btn-outline-danger {
+    border-radius: 20px;
+    transition: all 0.2s ease;
+  }
+  .btn-outline-danger:hover {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border-color: #dc3545;
+    color: white;
+  }
+  .alert {
+    border-radius: 15px;
+    border: none;
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+  }
+  /* Responsive Adjustments */
+  @media (max-width: 767px) {
+    .row.g-4 {
+      text-align: center;
+    }
+    .card {
+      margin-bottom: 20px;
+    }
+  }
+</style>
+
+{% endblock %}

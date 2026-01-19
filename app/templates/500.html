@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block body %}
+<section class="container text-center my-5">
+  <h1 class="display-1 text-danger animate__animated animate__fadeIn">500</h1>
+  <h3 class="fw-bold animate__animated animate__fadeIn animate__delay-1s">Internal Server Error</h3>
+  <p class="animate__animated animate__fadeIn animate__delay-2s">
+    Oops! Something went wrong on our end. Please try again later.
+  </p>
+  <a href="{{ url_for('index') }}" class="btn btn-primary mt-3 btn-hover-scale">
+    <i class="bi bi-house-door"></i> Go Home
+  </a>
+</section>
+
+<style>
+  .btn-hover-scale {
+    transition: transform 0.2s ease;
+  }
+  .btn-hover-scale:hover {
+    transform: scale(1.05);
+  }
+</style>
+
+{% endblock %}

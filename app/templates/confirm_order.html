@@ -1,0 +1,327 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<!-- ===== ORDER CONFIRMATION PAGE ===== -->
+<div class="container my-5">
+    <h1 class="text-center mb-5 fw-bold animate__animated animate__fadeInDown">Confirm Your Order</h1>
+
+    <form method="POST" action="{{ url_for('cart_confirm') }}" id="orderForm">
+        <div class="row g-4">
+
+            <!-- User Information -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 animate__animated animate__fadeInUp">
+                    <div class="card-body">
+                        <h5 class="fw-semibold mb-3">Your Information</h5>
+                        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Phone:</strong> {{ user.phone or "Not provided" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Information -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 animate__animated animate__fadeInUp" style="animation-delay:.1s">
+                    <div class="card-body">
+                        <h5 class="fw-semibold mb-3">Shipping Address</h5>
+                        <p>{{ user.address }}</p>
+                        <p>{{ user.city }}, {{ user.province }}</p>
+                        <p>{{ user.country }} - {{ user.zip_code }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment & Summary -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 animate__animated animate__fadeInUp" style="animation-delay:.2s">
+                    <div class="card-body">
+                        <h5 class="fw-semibold mb-3">Payment Method</h5>
+
+                        <!-- Payment Options -->
+                        <div class="form-check p-3 border rounded-3 mb-2">
+                            <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod" required>
+                            <label class="form-check-label" for="cod">💵 <strong>Cash on Delivery</strong></label>
+                        </div>
+
+                        <!--<div class="form-check p-3 border rounded-3 mb-2">
+                            <input class="form-check-input" type="radio" name="payment_method" id="card" value="card">
+                            <label class="form-check-label" for="card">💳 <strong>Card Payment</strong></label>
+                        </div>
+
+                        <div class="form-check p-3 border rounded-3 mb-2">
+                            <input class="form-check-input" type="radio" name="payment_method" id="jazzcash" value="jazzcash">
+                            <label class="form-check-label" for="jazzcash">💛 <strong>JazzCash</strong></label>
+                        </div>
+
+                        <div class="form-check p-3 border rounded-3 mb-4">
+                            <input class="form-check-input" type="radio" name="payment_method" id="easypaisa" value="easypaisa">
+                            <label class="form-check-label" for="easypaisa">💚 <strong>EasyPaisa</strong></label>
+                        </div>-->
+
+                        <!-- Order Summary -->
+                        <h5 class="fw-semibold mb-3">Your Order</h5>
+                        <ul class="list-group mb-3">
+                            {% for item in items %}
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>{{ item.product.name }} (x{{ item.quantity }})</span>
+                                <span>PKR {{ "%.2f"|format(item.product.price * item.quantity) }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+
+                        <div class="d-flex justify-content-between border-top pt-3 fw-bold">
+                            <span>Total:</span>
+                            <span>PKR {{ "%.2f"|format(total) }}</span>
+                        </div>
+
+                        <button class="btn btn-primary btn-lg w-100 mt-4">Confirm Order</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- ===== CHANGE LOCATION ===== -->
+<div class="container my-5 text-center">
+    <h3 class="fw-bold mb-3">Change Location</h3>
+    <button class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#changeLocation">Change Location</button>
+
+    <div class="collapse mt-4" id="changeLocation">
+        <div class="card card-body shadow-sm text-start">
+            <form method="POST" action="{{ url_for('change_location') }}">
+                <div class="row g-3">
+                    <div class="col-md-6"><input class="form-control" name="country" value="{{ user.country }}" placeholder="Country" required></div>
+                    <div class="col-md-6"><input class="form-control" name="province" value="{{ user.province }}" placeholder="Province" required></div>
+                    <div class="col-md-6"><input class="form-control" name="city" value="{{ user.city }}" placeholder="City" required></div>
+                    <div class="col-md-6"><input class="form-control" name="zip_code" value="{{ user.zip_code }}" placeholder="ZIP" required></div>
+                    <div class="col-12"><textarea class="form-control" name="address" rows="3" required>{{ user.address }}</textarea></div>
+                    <div class="col-12 text-end"><button class="btn btn-success">Save</button></div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CARD PAYMENT POPUP ===== -->
+<div id="cardPopup" class="payment-popup">
+    <div class="payment-box">
+        <h3 class="text-center mb-3">Enter Card Details</h3>
+        <input type="text" class="form-control mb-2" placeholder="Card Number" id="cardNumber">
+        <input type="text" class="form-control mb-2" placeholder="MM/YY" id="expiry">
+        <input type="text" class="form-control mb-2" placeholder="CVV" id="cvv">
+        <div id="cardError" class="text-danger mb-2"></div>
+        <button class="btn btn-primary w-100 mb-2" id="cardPayBtn">Pay Now</button>
+        <button class="btn btn-secondary w-100" id="cardCancelBtn">Cancel</button>
+    </div>
+</div>
+
+<!-- ===== WALLET PAYMENT POPUP ===== -->
+<div id="walletPopup" class="payment-popup">
+    <div class="payment-box">
+        <h3 class="text-center mb-3" id="walletTitle"></h3>
+        <input type="text" class="form-control mb-2" placeholder="Mobile Number" id="walletNumber">
+        <div id="walletError" class="text-danger mb-2"></div>
+        <button class="btn btn-primary w-100 mb-2" id="walletPayBtn">Pay Now</button>
+        <button class="btn btn-secondary w-100" id="walletCancelBtn">Cancel</button>
+    </div>
+</div>
+
+<style>
+  /* Simple, Beautiful Styling for Order Confirmation Page */
+  body {
+    background: #f8f9fa;
+  }
+  h1 {
+    color: #1e3c72;
+    font-size: 2.5rem;
+  }
+  .card {
+    background: #fff;
+    border-radius: 15px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  .card-body h5 {
+    color: #1e3c72;
+    font-size: 1.2rem;
+  }
+  .form-check {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6 !important;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  .form-check:hover {
+    background: #e9ecef;
+    border-color: #007bff !important;
+  }
+  .form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  .list-group-item {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+  .list-group-item:last-child {
+    border-bottom: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 25px;
+    padding: 12px;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+  }
+  .btn-outline-primary {
+    border-color: #007bff;
+    color: #007bff;
+    border-radius: 20px;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .btn-outline-primary:hover {
+    background: #007bff;
+    color: #fff;
+  }
+  .btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    border-radius: 20px;
+    transition: transform 0.2s ease;
+  }
+  .btn-success:hover {
+    transform: translateY(-2px);
+  }
+  .form-control {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+  }
+  /* Payment Popups */
+  .payment-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+  }
+  .payment-box {
+    background: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+  }
+  .payment-box h3 {
+    color: #1e3c72;
+  }
+  .payment-box .btn {
+    border-radius: 20px;
+  }
+  /* Responsive Adjustments */
+  @media (max-width: 767px) {
+    h1 {
+      font-size: 2rem;
+    }
+    .card {
+      margin-bottom: 20px;
+    }
+  }
+</style>
+
+<script>
+const form = document.getElementById('orderForm');
+
+// Radios
+const cod = document.getElementById('cod');
+const card = document.getElementById('card');
+const jazzcash = document.getElementById('jazzcash');
+const easypaisa = document.getElementById('easypaisa');
+
+// Card popup elements
+const cardPopup = document.getElementById('cardPopup');
+const cardError = document.getElementById('cardError');
+
+// Wallet popup elements
+const walletPopup = document.getElementById('walletPopup');
+const walletTitle = document.getElementById('walletTitle');
+const walletError = document.getElementById('walletError');
+
+// ---- CARD PAYMENT ----
+card.addEventListener('change', () => cardPopup.style.display = 'flex');
+
+document.getElementById('cardCancelBtn').onclick = () => {
+    cardPopup.style.display = 'none';
+    card.checked = false;
+};
+
+document.getElementById('cardPayBtn').onclick = () => {
+    const num = cardNumber.value;
+    const exp = expiry.value;
+    const cvvVal = cvv.value;
+
+    if(num.length < 12 || cvvVal.length < 3 || exp.length < 4){
+        cardError.textContent = 'Invalid card details';
+        return;
+    }
+
+    alert('Card Payment Successful');
+    cardPopup.style.display = 'none';
+    form.submit();
+};
+
+// ---- WALLET PAYMENTS ----
+function openWallet(name){
+    walletTitle.textContent = 'Pay with ' + name;
+    walletPopup.style.display = 'flex';
+}
+
+jazzcash.addEventListener('change',()=>openWallet('JazzCash'));
+easypaisa.addEventListener('change',()=>openWallet('EasyPaisa'));
+
+document.getElementById('walletCancelBtn').onclick = () => {
+    walletPopup.style.display = 'none';
+    jazzcash.checked = false;
+    easypaisa.checked = false;
+};
+
+document.getElementById('walletPayBtn').onclick = () => {
+    if(walletNumber.value.length < 11){
+        walletError.textContent = 'Invalid mobile number';
+        return;
+    }
+    alert('Payment Successful');
+    walletPopup.style.display = 'none';
+    form.submit();
+};
+
+// ---- FORM GUARD ----
+form.addEventListener('submit',e=>{
+    if(card.checked){ e.preventDefault(); cardPopup.style.display='flex'; }
+    if(jazzcash.checked || easypaisa.checked){ e.preventDefault(); walletPopup.style.display='flex'; }
+});
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+{% endblock %}

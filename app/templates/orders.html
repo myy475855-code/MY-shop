@@ -1,0 +1,218 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<!-- ===== ORDERS SECTION ===== -->
+<section class="container my-5">
+  <h3 class="fw-bold text-primary mb-4 animate__animated animate__fadeInDown">
+    <i class="bi bi-receipt-cutoff"></i> My Orders
+  </h3>
+
+  {% if orders %}
+  <div class="table-responsive">
+    <table class="table align-middle table-hover bg-white shadow-sm order-table">
+      <thead class="table-gradient">
+        <tr>
+          <th scope="col">Order ID</th>
+          <th scope="col">Date</th>
+          <th scope="col">Items</th>
+          <th scope="col">Total</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr class="accordion-toggle table-row-hover">
+          <td>#{{ order.order_number }}</td>
+          <td>{{ order.created_at.strftime('%Y-%m-%d') }}</td>
+          <td>{{ order.items|length }} item{{ 's' if order.items|length > 1 else '' }}</td>
+          <td class="text-primary fw-bold">PKR:{{ '%.2f'|format(order.total_amount) }}</td>
+          <td>
+            {% if order.status == 'Delivered' %}
+              <span class="badge bg-success badge-animated">{{ order.status }}</span>
+            {% elif order.status == 'Cancelled' %}
+              <span class="badge bg-danger badge-animated">{{ order.status }}</span>
+            {% elif order.status == 'Shipped' %}
+              <span class="badge bg-warning text-dark badge-animated">{{ order.status }}</span>
+            {% else %}
+              <span class="badge bg-secondary badge-animated">{{ order.status }}</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary btn-hover-scale" data-bs-toggle="collapse" data-bs-target="#order{{ order.id }}">
+              <i class="bi bi-eye"></i> View
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="6" class="hiddenRow">
+            <div class="accordion-collapse collapse" id="order{{ order.id }}">
+              <div class="p-3 bg-light rounded-3 shadow-sm">
+                <h6 class="fw-bold text-primary mb-2">Order Details</h6>
+                <ul class="list-group">
+                  {% for item in order.items %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ item.product_name }}
+                    <span class="fw-semibold">
+                      PKR:{{ '%.2f'|format(item.unit_price) }} × {{ item.quantity }}
+                    </span>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif order %}
+  <div class="table-responsive">
+    <table class="table align-middle table-hover bg-white shadow-sm order-table">
+      <thead class="table-gradient">
+        <tr>
+          <th scope="col">Order ID</th>
+          <th scope="col">Date</th>
+          <th scope="col">Items</th>
+          <th scope="col">Total</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="accordion-toggle table-row-hover">
+          <td>#{{ order.order_number }}</td>
+          <td>{{ order.created_at.strftime('%Y-%m-%d') }}</td>
+          <td>{{ order.items|length }} item{{ 's' if order.items|length > 1 else '' }}</td>
+          <td class="text-primary fw-bold">PKR:{{ '%.2f'|format(order.total_amount) }}</td>
+          <td>
+            {% if order.status == 'Delivered' %}
+              <span class="badge bg-success badge-animated">{{ order.status }}</span>
+            {% elif order.status == 'Cancelled' %}
+              <span class="badge bg-danger badge-animated">{{ order.status }}</span>
+            {% elif order.status == 'Shipped' %}
+              <span class="badge bg-warning text-dark badge-animated">{{ order.status }}</span>
+            {% else %}
+              <span class="badge bg-secondary badge-animated">{{ order.status }}</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary btn-hover-scale" data-bs-toggle="collapse" data-bs-target="#order{{ order.id }}">
+              <i class="bi bi-eye"></i> View
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="6" class="hiddenRow">
+            <div class="accordion-collapse collapse" id="order{{ order.id }}">
+              <div class="p-3 bg-light rounded-3 shadow-sm">
+                <h6 class="fw-bold text-primary mb-2">Order Details</h6>
+                <ul class="list-group">
+                  {% for item in order.items %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ item.product_name }}
+                    <span class="fw-semibold">
+                      PKR:{{ '%.2f'|format(item.unit_price) }} × {{ item.quantity }}
+                    </span>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="alert alert-info text-center shadow-sm animate__animated animate__fadeIn">
+      <i class="bi bi-info-circle"></i> You have no orders yet.
+    </div>
+  {% endif %}
+  <a href="{{ url_for('index') }}" class="btn btn-outline-primary mt-3">
+        <i class="bi bi-arrow-left"></i> Continue Shopping
+  </a>
+</section>
+
+<style>
+  /* Consistent with admin dashboard styling */
+  body {
+    background: #f8f9fa;
+  }
+  h3 {
+    color: #1e3c72;
+    font-size: 1.8rem;
+  }
+  .table {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+  }
+  .table:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  .table-gradient {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+  }
+  .table-hover tbody tr:hover {
+    background: #f1f3f4;
+  }
+  .table-row-hover {
+    transition: background 0.3s ease;
+  }
+  .table-row-hover:hover {
+    background: #e9ecef !important;
+  }
+  .badge-animated {
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+  }
+  .btn-hover-scale {
+    transition: transform 0.2s ease;
+  }
+  .btn-hover-scale:hover {
+    transform: scale(1.05);
+  }
+  .btn-outline-primary {
+    border-radius: 20px;
+    transition: all 0.2s ease;
+  }
+  .btn-outline-primary:hover {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border-color: #007bff;
+    color: white;
+  }
+  .list-group-item {
+    border-radius: 10px !important;
+    margin-bottom: 5px;
+    border: none;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+  .alert {
+    border-radius: 15px;
+    border: none;
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+  }
+  /* Responsive Adjustments */
+  @media (max-width: 767px) {
+    .table-responsive {
+      font-size: 0.9rem;
+    }
+    .hiddenRow .p-3 {
+      padding: 15px !important;
+    }
+  }
+</style>
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+{% endblock %}

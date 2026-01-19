@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="container my-5">
+  <h3 class="text-primary mb-4 animate__animated animate__fadeInDown">
+    <i class="bi bi-bag-check"></i> All Orders
+  </h3>
+
+  <!-- Orders Table -->
+  <div class="card shadow-sm card-hover animate__animated animate__fadeInUp">
+    <div class="card-header bg-gradient-primary text-white d-flex align-items-center justify-content-between">
+      <h5 class="mb-0"><i class="bi bi-list-check"></i> Orders Overview</h5>
+      <span class="badge bg-light text-dark p-2">{{ orders|length }} Orders</span>
+    </div>
+
+    <div class="card-body">
+      {% if orders %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle order-table">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Customer</th>
+              <th>Email</th>
+              <th>Total Price</th>
+              <th>Payment Method</th>
+              <th>Status</th>
+              <th>Placed On</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for order in orders %}
+            <tr class="table-row-hover">
+              <td>#{{ order.order_number }}</td>
+              <td>{{ order.user.first_name }} {{ order.user.last_name }}</td>
+              <td>{{ order.user.email }}</td>
+              <td class="text-primary fw-bold">PKR:{{ "%.2f"|format(order.total_amount) }}</td>
+              <td>
+                {% if order.payment_method == "cod" %}
+                <span class="badge bg-warning text-dark">Cash on Delivery</span>
+                {% else %}
+                <span class="badge bg-success">Card</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if order.status == "Pending" %}
+                <span class="badge bg-secondary">Pending</span>
+                {% elif order.status == "Confirmed" %}
+                <span class="badge bg-primary">Confirmed</span>
+                {% elif order.status == "Shipped" %}
+                <span class="badge bg-info text-dark">Shipped</span>
+                {% elif order.status == "Delivered" %}
+                <span class="badge bg-success">Delivered</span>
+                {% else %}
+                <span class="badge bg-danger">Cancelled</span>
+                {% endif %}
+              </td>
+              <td>{{ order.created_at.strftime("%d-%m-%Y %I:%M %p") }}</td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary btn-hover-scale" data-bs-toggle="collapse" data-bs-target="#order{{ order.id }}">
+                  <i class="bi bi-eye"></i> View
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="8" class="hiddenRow">
+                <div class="accordion-collapse collapse" id="order{{ order.id }}">
+                  <div class="p-3 bg-light rounded-3 shadow-sm">
+                    <h6 class="fw-bold text-primary mb-2">Order Details</h6>
+                    <ul class="list-group">
+                      {% for item in order.items %}
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ item.product_name }}
+                        <span class="fw-semibold">
+                          PKR:{{ '%.2f'|format(item.unit_price) }} × {{ item.quantity }}
+                        </span>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+      {% else %}
+      <p class="text-center text-muted">No orders found.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Simple, Beautiful Styling for Orders Page */
+  body {
+    background: #f8f9fa;
+  }
+  h3 {
+    color: #1e3c72;
+    font-size: 1.8rem;
+  }
+  .card {
+    border: none;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+  }
+  .badge {
+    border-radius: 20px;
+    font-size: 0.8rem;
+  }
+  .table {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .table-hover tbody tr:hover {
+    background: #f1f3f4;
+  }
+  .table-row-hover {
+    transition: background 0.3s ease;
+  }
+  .table-row-hover:hover {
+    background: #e9ecef !important;
+  }
+  .btn-outline-primary {
+    border-color: #007bff;
+    color: #007bff;
+    border-radius: 20px;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
+  }
+  .btn-outline-primary:hover {
+    background: #007bff;
+    color: #fff;
+    transform: scale(1.05);
+  }
+  .list-group-item {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+  .list-group-item:last-child {
+    border-bottom: none;
+  }
+  .hiddenRow {
+    padding: 0 !important;
+    border: none;
+  }
+  .accordion-collapse {
+    transition: all 0.3s ease;
+  }
+  .text-center p {
+    font-size: 1.1rem;
+    color: #6c757d;
+  }
+  /* Responsive Adjustments */
+  @media (max-width: 767px) {
+    .table-responsive {
+      font-size: 0.9rem;
+    }
+    .d-flex.align-items-center {
+      flex-direction: column;
+      text-align: center;
+    }
+    .badge {
+      font-size: 0.7rem;
+    }
+  }
+</style>
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+{% endblock %}

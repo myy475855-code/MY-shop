@@ -1,0 +1,68 @@
+<!-- This snippet can be added to your base.html template (e.g., in the <head> or before </body>) or included in specific pages as needed. -->
+<!-- It uses SweetAlert2 for flashed messages, customized to match the admin dashboard's gradient theme and style. -->
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        {% for category, msg in messages %}
+          Swal.fire({
+            title: "{{ category|capitalize }}",
+            text: "{{ msg }}",
+            icon: "{{ category if category in ['success','error','warning','info'] else 'info' }}",
+            confirmButtonColor: '#2575fc',  // Primary blue from dashboard gradients
+            confirmButtonText: 'OK',
+            background: '#f8f9fa',  // Matching body background
+            color: '#1e3c72',  // Matching header text color
+            customClass: {
+              popup: 'swal-popup-custom',
+              confirmButton: 'swal-btn-custom'
+            },
+            showClass: {
+              popup: 'animate__animated animate__fadeInUp'  // Consistent animation
+            },
+            hideClass: {
+              popup: 'animate__animated animate__fadeOutDown'
+            }
+          });
+        {% endfor %}
+      });
+    </script>
+  {% endif %}
+{% endwith %}
+
+<!-- Custom CSS to enhance SweetAlert styling for consistency -->
+<style>
+  .swal-popup-custom {
+    border-radius: 15px !important;  /* Matching card border-radius */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;  /* Matching card shadow */
+    border: none !important;
+  }
+  .swal-btn-custom {
+    background: linear-gradient(135deg, #2575fc, #1e3c72) !important;  /* Matching primary gradient */
+    border: none !important;
+    border-radius: 20px !important;  /* Matching button border-radius */
+    transition: transform 0.2s ease !important;
+  }
+  .swal-btn-custom:hover {
+    transform: scale(1.05) !important;  /* Matching btn-hover-scale */
+    background: linear-gradient(135deg, #1e3c72, #2a5298) !important;  /* Darker gradient on hover */
+  }
+  /* Icon color adjustments for better contrast */
+  .swal-icon-success .swal-icon {
+    color: #28a745 !important;  /* Success green from dashboard */
+  }
+  .swal-icon-error .swal-icon {
+    color: #dc3545 !important;  /* Error red */
+  }
+  .swal-icon-warning .swal-icon {
+    color: #ffc107 !important;  /* Warning yellow */
+  }
+  .swal-icon-info .swal-icon {
+    color: #17a2b8 !important;  /* Info blue */
+  }
+</style>
+
+<!-- Animate.css for animations (if not already included in base.html) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>

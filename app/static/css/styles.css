@@ -1,0 +1,253 @@
+/* ================= GLOBAL STYLES ================= */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  color: #333;
+}
+
+/* Sticky Navbar with Floating Effect */
+.navbar {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #fff;
+    transition: transform 0.2s ease;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.05);
+    color: #ffc107;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.2s ease;
+    position: relative;
+}
+
+.nav-link:hover {
+    color: #ffc107;
+    transform: translateY(-2px);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #ffc107;
+    transition: width 0.3s ease, left 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+    left: 0;
+}
+
+/* Search Bar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    padding: 5px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: box-shadow 0.3s ease;
+}
+
+.search-bar:focus-within {
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+}
+
+.search-input {
+    border: none !important;
+    background: transparent !important;
+    color: #fff !important;
+    flex: 1 !important;
+    padding: 8px 12px !important;
+    outline: none !important;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.search-btn {
+    border: none !important;
+    border-radius: 50% !important;
+    width: 35px !important;
+    height: 35px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.3s ease, transform 0.2s ease !important;
+}
+
+.search-btn:hover {
+    background: #ffc107 !important;
+    color: #0056b3 !important;
+    transform: scale(1.1) !important;
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    background: #fff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+    transition: background 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+}
+
+/* Mega Menu for Categories */
+.mega-menu {
+    min-width: 200px;
+}
+
+/* Cart Badge */
+#cartBadge {
+    font-size: 0.75rem;
+}
+
+/* Dark Mode Toggle */
+#darkModeToggle {
+    transition: background 0.3s ease;
+}
+
+#darkModeToggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+    .search-bar {
+        margin: 10px 0;
+    }
+    .navbar-nav {
+        text-align: center;
+    }
+}
+
+/* Dark Mode Styles (Add via JS) */
+body.dark-mode .navbar {
+    background: linear-gradient(135deg, #343a40 0%, #212529 100%);
+}
+
+body.dark-mode .nav-link,
+body.dark-mode .navbar-brand {
+    color: #fff;
+}
+
+body.dark-mode .dropdown-menu {
+    background: #343a40;
+    color: #fff;
+}
+
+body.dark-mode .dropdown-item:hover {
+    background: #495057;
+}
+
+footer {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); /* Matching navbar gradient */
+            color: #fff;
+            padding: 60px 0 20px;
+            margin-top: auto; /* Push to bottom if needed */
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffd700, #ff6b6b); /* Accent stripe */
+        }
+        footer h5 {
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #ffd700; /* Gold accent */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        footer .contact-form {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        footer .contact-form:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        }
+        footer .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #fff;
+            padding: 12px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        footer .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        footer .form-control:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        footer button[type="submit"] {
+            background: linear-gradient(135deg, #ffd700, #ff6b6b);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            color: #fff;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        footer button[type="submit"]:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+        }
+        footer p {
+            margin: 10px 0;
+            font-size: 1rem;
+        }
+        footer hr {
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            margin: 40px 0;
+        }
+        footer .text-center {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        /* Responsive Adjustments */
+        @media (max-width: 767px) {
+            footer .contact-form {
+                margin-bottom: 30px;
+            }
+            footer h5 {
+                font-size: 1.2rem;
+            }
+        }

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block body %}
+<section class="container text-center my-5">
+  <h1 class="display-1 text-primary animate__animated animate__fadeIn">404</h1>
+  <h3 class="fw-bold animate__animated animate__fadeIn animate__delay-1s">Page Not Found</h3>
+  <p class="animate__animated animate__fadeIn animate__delay-2s">
+    Sorry, the page you are looking for does not exist.
+  </p>
+  <a href="{{ url_for('index') }}" class="btn btn-primary mt-3 btn-hover-scale">
+    <i class="bi bi-house-door"></i> Go Home
+  </a>
+</section>
+
+<style>
+  .btn-hover-scale {
+    transition: transform 0.2s ease;
+  }
+  .btn-hover-scale:hover {
+    transform: scale(1.05);
+  }
+</style>
+
+{% endblock %}

@@ -1,0 +1,343 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
+
+<div class=" d-flex align-items-center justify-content-center ecommerce-bg">
+  <div class="ecommerce-card animate__animated animate__fadeInUp animate__delay-0.5s">
+    <div class="ecommerce-header">
+      <div class="logo-placeholder">
+        <i class="bi bi-shop"></i>
+      </div>
+      <h3 class="ecommerce-title">Welcome Back</h3>
+      <p class="ecommerce-sub">Sign in to your account to continue shopping</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="ecommerce-input">
+        <i class="bi bi-envelope"></i>
+        <input type="email" name="email" required>
+        <label>Email Address</label>
+      </div>
+
+      <div class="ecommerce-input">
+        <i class="bi bi-lock"></i>
+        <input type="password" id="password" name="password" required>
+        <label>Password</label>
+        <span class="ecommerce-eye" onclick="togglePassword()"><i class="bi bi-eye"></i></span>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="rememberMe">
+          <label class="form-check-label" for="rememberMe">
+            Keep me signed in
+          </label>
+        </div>
+        <a href="{{ url_for('forgot_password') }}" class="text-decoration-none ecommerce-link">Forgot password?</a>
+      </div>
+
+      <button class="ecommerce-btn mt-4">Sign In</button>
+    </form>
+    <div class="ecommerce-links">
+      <a href="{{ url_for('register') }}">Don't have an account? Sign up</a>
+    </div>
+    
+    <!--<div class="mt-4">
+      <p class="mb-3">Or continue with</p>
+      <div class="d-flex justify-content-center gap-3">
+        <div id="g_id_onload"
+          data-client_id="{{ config['GOOGLE_CLIENT_ID'] }}"
+          data-callback="handleGoogleLogin">
+      </div>
+
+      <button type="button" class="social-btn google-btn" onclick="googleLogin()">
+        <i class="bi bi-google"></i>
+      </button>
+
+    </div>-->
+  </div>
+</div>
+
+
+<style>
+/* Updated E-commerce Background with Subtle Product Imagery */
+.ecommerce-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.ecommerce-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(118, 75, 162, 0.05) 0%, transparent 50%),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><pattern id="productPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="2" fill="%23667eea" opacity="0.1"/><rect x="10" y="10" width="20" height="20" fill="none" stroke="%23e9ecef" stroke-width="0.5" opacity="0.2"/></pattern></defs><rect width="200" height="200" fill="url(%23productPattern)"/></svg>');
+  opacity: 0.6;
+  animation: subtleFloat 20s ease-in-out infinite;
+}
+
+@keyframes subtleFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+/* Card with Subtle Shadow and Clean Design */
+.ecommerce-card {
+  width: 450px;
+  max-width: 90vw;
+  padding: 50px 40px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.ecommerce-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* Header with Logo Placeholder */
+.ecommerce-header {
+  margin-bottom: 30px;
+}
+
+.logo-placeholder {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.ecommerce-title {
+  color: #333;
+  font-weight: 700;
+  margin-bottom: 10px;
+  font-size: 1.8rem;
+}
+
+.ecommerce-sub {
+  color: #666;
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
+/* Inputs with Clean Style */
+.ecommerce-input {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.ecommerce-input i {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  transition: 0.3s;
+  z-index: 1;
+}
+
+.ecommerce-input input {
+  width: 100%;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px 16px 16px 50px;
+  border: 1px solid #e9ecef;
+  color: #333;
+  outline: none;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.ecommerce-input input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: white;
+}
+
+.ecommerce-input input:focus + label,
+.ecommerce-input input:valid + label {
+  top: -10px;
+  font-size: 12px;
+  color: #667eea;
+}
+
+.ecommerce-input input:focus ~ i {
+  color: #667eea;
+}
+
+.ecommerce-input label {
+  position: absolute;
+  left: 50px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+/* Eye Toggle */
+.ecommerce-eye {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #999;
+  transition: 0.3s;
+}
+
+.ecommerce-eye:hover {
+  color: #667eea;
+}
+
+/* Checkbox and Link */
+.form-check-input {
+  border: 1px solid #e9ecef;
+}
+
+.form-check-input:checked {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.form-check-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.ecommerce-link {
+  color: #667eea;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.ecommerce-link:hover {
+  color: #764ba2;
+}
+
+/* Button with Gradient */
+.ecommerce-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.ecommerce-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s;
+}
+
+.ecommerce-btn:hover::before {
+  transform: translateX(100%);
+}
+
+.ecommerce-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Links */
+.ecommerce-links a {
+  display: block;
+  margin-top: 15px;
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.ecommerce-links a:hover {
+  color: #764ba2;
+}
+
+/* Social Buttons */
+.social-btn {
+  width: 100%;
+  height: 50px;
+  border-radius: 50px;
+  border: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 1.2rem;
+  transition: all 0.3s;
+  cursor: pointer;
+  background: white;
+}
+
+.google-btn:hover {
+  background: #dd4b39;
+  border-color: #dd4b39;
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ecommerce-card {
+    width: 95vw;
+    padding: 40px 30px;
+  }
+
+  .ecommerce-title {
+    font-size: 1.5rem;
+  }
+
+  .d-flex.gap-3 {
+    gap: 1rem !important;
+  }
+}
+</style>
+
+<script>
+function togglePassword() {
+  const p = document.getElementById("password");
+  const eye = document.querySelector(".ecommerce-eye i");
+  if (p.type === "password") {
+    p.type = "text";
+    eye.className = "bi bi-eye-slash";
+  } else {
+    p.type = "password";
+    eye.className = "bi bi-eye";
+  }
+}
+
+// Smooth focus animations
+document.querySelectorAll('.ecommerce-input input').forEach(input => {
+  input.addEventListener('focus', () => {
+    input.parentElement.classList.add('animate__animated', 'animate__fadeIn');
+  });
+  input.addEventListener('blur', () => {
+    input.parentElement.classList.remove('animate__animated', 'animate__fadeIn');
+  });
+});
+</script>
+
+{% endblock %}
