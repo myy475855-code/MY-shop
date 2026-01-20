@@ -24,9 +24,8 @@ def product_routes(app):
     @app.route("/")
     def index():
         products = Product.query.order_by(Product.created_at.desc()).limit(12).all()
-        items = Cart.query.filter_by(user_id=current_user.id).all() 
         
-        return render_template("index.html", products=products, user=current_user,items=items)
+        return render_template("index.html", products=products, user=current_user)
 
 
     # ===================== PRODUCT DETAIL =====================
