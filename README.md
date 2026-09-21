@@ -33,14 +33,6 @@ cp .env.example .env             # then edit .env and set a real SECRET_KEY
 
 ```bash
 export FLASK_APP=run.py          # Windows (PowerShell): $env:FLASK_APP="run.py"
-flask seed
-```
-
-This creates all tables and seeds demo categories, 10 demo products, and an admin account:
-
-```
-email:    admin@myyshop.com
-password: admin123
 ```
 
 **Change or remove this account before deploying anywhere public.**
@@ -52,7 +44,7 @@ python run.py
 ```
 
 Visit **http://localhost:5000** — the storefront is live.
-Sign in with the admin account above, then visit **http://localhost:5000/admin**
+
 for the dashboard (the "Admin" link also appears in the nav once you're signed in as an admin).
 
 ## 4. Project structure
