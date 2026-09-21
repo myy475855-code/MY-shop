@@ -1,93 +1,74 @@
-from flask import render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
+
 from app import db
-from app.models import Cart
+from app.models import CartItem, Product
 
-def cart_routes(app):
+cart_bp = Blueprint("cart", __name__)
 
-    @app.route("/cart")
-    @login_required
-    def cart():
-        items = Cart.query.filter_by(user_id=current_user.id).all()
 
-        subtotal = 0  # total without discounts
-        total = 0     # total with discounts
-        savings = 0
+@cart_bp.route("/")
+@login_required
+def view_cart():
+    items = CartItem.query.filter_by(user_id=current_user.id).all()
+    subtotal = sum(item.line_total for item in items)
+    threshold = current_app.config["FREE_SHIPPING_THRESHOLD"]
+    shipping = 0 if (subtotal == 0 or subtotal >= threshold) else current_app.config["STANDARD_SHIPPING_FEE"]
+    total = subtotal + shipping
+    return render_template(
+        "cart.html",
+        items=items,
+        subtotal=subtotal,
+        shipping=shipping,
+        total=total,
+        threshold=threshold,
+    )
 
-        for item in items:
-            product = item.product
-            qty = item.quantity
 
-            # Use discount price if available
-            price = product.price
-            discounted_price = product.discount_price if product.discount_price and product.discount_price > 0 else price
+@cart_bp.route("/add/<int:product_id>", methods=["POST"])
+@login_required
+def add_to_cart(product_id):
+    product = Product.query.get_or_404(product_id)
 
-            subtotal += price * qty
-            total += discounted_price * qty
+    if not product.in_stock:
+        flash(f"{product.name} is out of stock.", "error")
+        return redirect(request.referrer or url_for("main.shop"))
 
-        savings = subtotal - total
+    quantity = max(1, int(request.form.get("quantity", 1)))
 
-        return render_template(
-            "cart.html",
-            items=items,
-            subtotal=subtotal,
-            total=total,
-            savings=savings
+    existing = CartItem.query.filter_by(user_id=current_user.id, product_id=product.id).first()
+    if existing:
+        existing.quantity = min(existing.quantity + quantity, product.stock)
+    else:
+        db.session.add(
+            CartItem(user_id=current_user.id, product_id=product.id, quantity=min(quantity, product.stock))
         )
 
-
-    @app.route("/cart/add/<int:product_id>", methods=["POST"])
-    @login_required
-    def cart_add(product_id):
-        qty = int(request.form.get("quantity", 1))
-
-        item = Cart.query.filter_by(
-            user_id=current_user.id,
-            product_id=product_id
-        ).first()
-
-        if item:
-            item.quantity += qty
-        else:
-            db.session.add(
-                Cart(
-                    user_id=current_user.id,
-                    product_id=product_id,
-                    quantity=qty
-                )
-            )
-
-        db.session.commit()
-        return redirect(request.referrer or url_for("cart"))
+    db.session.commit()
+    flash(f"Added {product.name} to your cart.", "success")
+    return redirect(request.referrer or url_for("main.shop"))
 
 
-    @app.route("/cart/update", methods=["POST"])
-    @login_required
-    def cart_update():
-        for key, value in request.form.items():
-            if key.startswith("qty_"):
-                pid = int(key.replace("qty_", ""))
-                item = Cart.query.filter_by(
-                    user_id=current_user.id,
-                    product_id=pid
-                ).first()
+@cart_bp.route("/update/<int:item_id>", methods=["POST"])
+@login_required
+def update_cart(item_id):
+    item = CartItem.query.filter_by(id=item_id, user_id=current_user.id).first_or_404()
+    quantity = int(request.form.get("quantity", 1))
 
-                if item:
-                    item.quantity = int(value)
-
-        db.session.commit()
-        return redirect(url_for("cart"))
-
-
-    @app.route("/cart/remove/<int:item_id>")
-    @login_required
-    def cart_remove(item_id):
-        item = Cart.query.get_or_404(item_id)
-
-        # Security check
-        if item.user_id != current_user.id:
-            return redirect(url_for("cart"))
-
+    if quantity <= 0:
         db.session.delete(item)
-        db.session.commit()
-        return redirect(url_for("cart"))
+    else:
+        item.quantity = min(quantity, item.product.stock)
+
+    db.session.commit()
+    return redirect(url_for("cart.view_cart"))
+
+
+@cart_bp.route("/remove/<int:item_id>", methods=["POST"])
+@login_required
+def remove_from_cart(item_id):
+    item = CartItem.query.filter_by(id=item_id, user_id=current_user.id).first_or_404()
+    db.session.delete(item)
+    db.session.commit()
+    flash("Item removed from cart.", "info")
+    return redirect(url_for("cart.view_cart"))

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if product else 'Add' }} product — Admin{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="admin-shell">
+    {% set active = 'products' %}
+    {% include "admin/_nav.html" %}
+
+    <div>
+      <div class="section-head"><h2>{{ 'Edit product' if product else 'Add product' }}</h2></div>
+
+      <form class="form-card wide" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="field">
+          <label for="name">Product name</label>
+          <input type="text" id="name" name="name" value="{{ product.name if product else '' }}" required>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="price">Price ({{ currency.strip() }})</label>
+            <input type="number" step="0.01" id="price" name="price" value="{{ product.price if product else '' }}" required>
+          </div>
+          <div class="field">
+            <label for="sale_price">Sale price (optional)</label>
+            <input type="number" step="0.01" id="sale_price" name="sale_price" value="{{ product.sale_price if product and product.sale_price else '' }}">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="stock">Stock quantity</label>
+            <input type="number" id="stock" name="stock" value="{{ product.stock if product else 0 }}" required>
+          </div>
+          <div class="field">
+            <label for="category_id">Category</label>
+            <select id="category_id" name="category_id">
+              <option value="">No category</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="4">{{ product.description if product else '' }}</textarea>
+        </div>
+
+        <div class="field">
+          <label for="image">Product image</label>
+          <input type="file" id="image" name="image" accept="image/*">
+          {% if product and product.image_filename %}
+            <div class="field-hint">Current image: {{ product.image_filename }}</div>
+          {% endif %}
+        </div>
+
+        {% if product %}
+          <div class="field-check">
+            <input type="checkbox" id="is_active" name="is_active" {% if product.is_active %}checked{% endif %}>
+            <label for="is_active" style="margin:0;">Visible in the store</label>
+          </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">{{ 'Save changes' if product else 'Add product' }}</button>
+        <a href="{{ url_for('admin.product_list') }}" class="btn btn-ghost">Cancel</a>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

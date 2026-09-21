@@ -1,149 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}MYY shop{% endblock %}</title>
-
-  <!-- Bootstrap CSS -->
-  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <!-- Custom Styles -->
-  <link rel="stylesheet" href="/static/css/styles.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ store_name }}{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-lg" id="mainNavbar">
-      <div class="container-fluid">
-          <!-- Brand -->
-          <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-              <i class="bi bi-shop me-2"></i> MYY Shop
+  <div class="topbar">
+    <div class="container">
+      <span class="topbar-note">Cash on Delivery available nationwide</span>
+      <span class="topbar-note">{{ store_name }} — everyday shopping, sorted.</span>
+    </div>
+  </div>
+
+  <header class="navbar">
+    <div class="container">
+      <a href="{{ url_for('main.home') }}" class="brand">MYY<span>SHOP</span></a>
+
+      <form class="nav-search" action="{{ url_for('main.shop') }}" method="get">
+        <input type="text" name="q" placeholder="Search products..." value="{{ request.args.get('q', '') }}">
+        <button type="submit" aria-label="Search">Search</button>
+      </form>
+
+      <nav class="nav-links">
+        <a class="nav-link" href="{{ url_for('main.shop') }}">Shop</a>
+        {% if current_user.is_authenticated %}
+          <a class="nav-link" href="{{ url_for('wishlist.view_wishlist') }}">Wishlist</a>
+          <a class="nav-link" href="{{ url_for('cart.view_cart') }}">
+            Cart
+            {% if cart_count %}<span class="nav-badge">{{ cart_count }}</span>{% endif %}
           </a>
+          <a class="nav-link" href="{{ url_for('orders.order_list') }}">Orders</a>
+          <a class="nav-link" href="{{ url_for('main.account') }}">{{ current_user.name.split(' ')[0] }}</a>
+          {% if current_user.is_admin %}
+            <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin</a>
+          {% endif %}
+          <a class="nav-link" href="{{ url_for('auth.logout') }}">Sign out</a>
+        {% else %}
+          <a class="nav-link" href="{{ url_for('auth.login') }}">Sign in</a>
+          <a class="nav-link btn btn-primary btn-small" href="{{ url_for('auth.register') }}">Create account</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
 
-          <!-- Mobile Search Toggle -->
-          <button class="btn btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="collapse" data-bs-target="#mobileSearch" aria-controls="mobileSearch" aria-expanded="false" aria-label="Toggle search">
-              <i class="bi bi-search"></i>
-          </button>
+  <div class="category-strip">
+    <div class="container">
+      <a href="{{ url_for('main.shop') }}">All products</a>
+      {% for cat in nav_categories() %}
+        <a href="{{ url_for('main.shop', category=cat.slug) }}">{{ cat.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
 
-          <!-- Navbar Toggler -->
-          <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-          </button>
+  <div class="flash-wrap">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category if category != 'message' else 'info' }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
 
-          <!-- Collapsible Content -->
-          <div class="collapse navbar-collapse" id="navbarContent">
-              <!-- Main Nav Links -->
-              <ul class="navbar-nav me-auto">
-                  <li class="nav-item">
-                      <a class="nav-link" href="{{ url_for('index') }}">Home</a>
-                  </li>
-                  <li class="nav-item">
-                      <a class="nav-link" href="#contact">Contact</a>
-                  </li>
-              </ul>
-
-              <!-- Desktop Search Bar -->
-              <form class="d-none d-lg-flex search-bar mx-3" action="{{ url_for('search') }}" method="get">
-                  <input type="search" name="q" class="form-control search-input" placeholder="Search products..." aria-label="Search products" autocomplete="off">
-                  <button type="submit" class="btn btn-light search-btn" aria-label="Submit search">
-                      <i class="bi bi-search"></i>
-                  </button>
-              </form>
-
-              <!-- Right-Side Nav -->
-              <ul class="navbar-nav ms-auto d-flex align-items-center">
-                  <!-- Cart with Badge -->
-                  <li class="nav-item me-3">
-                      <a class="nav-link position-relative" href="{{ url_for('cart') }}" aria-label="View cart">
-                          <i class="bi bi-cart fs-5"></i>
-
-                          {% if cart_count > 0 %}
-                          <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
-                              {{ cart_count }}
-                          </span>
-                          {% endif %}
-                      </a>
-                  </li>
-
-                  <!-- Favorites -->
-                  <li class="nav-item me-3">
-                      <a class="nav-link" href="/favorites" title="Favorites" aria-label="View favorites">
-                          <i class="bi bi-heart"></i>
-                      </a>
-                  </li>
-                  
-
-                  {% if current_user.is_authenticated %}
-                      {% if current_user.email == 'myy502388@gmail.com' %}
-                          <li class="nav-item">
-                              <a class="nav-link text-warning fw-bold" href="{{ url_for('upload_product') }}">
-                                  <i class="bi bi-upload"></i> Upload
-                              </a>
-                          </li>
-                          <li class="nav-item">
-                              <a class="nav-link text-warning fw-bold" href="{{ url_for('admin_dashboard') }}">
-                                  <i class="bi bi-speedometer2"></i> Dashboard
-                              </a>
-                          </li>
-                      {% endif %}
-
-                      <li class="nav-item dropdown">
-                          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                              <i class="bi bi-person-circle me-1"></i>
-                              {{ current_user.first_name or 'Account' }}
-                          </a>
-                          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                              <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
-                              <li><a class="dropdown-item" href="{{ url_for('orders') }}">Orders</a></li>
-                              <li><hr class="dropdown-divider"></li>
-                              <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
-                          </ul>
-                      </li>
-                  {% else %}
-                      <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-                      <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
-                  {% endif %}
-              </ul>
-          </div>
-
-          <!-- Mobile Search Collapse -->
-          <div class="collapse" id="mobileSearch">
-              <form class="search-bar p-3" action="{{ url_for('search') }}" method="get">
-                  <input type="search" name="q" class="form-control search-input" placeholder="Search products..." aria-label="Search products">
-                  <button type="submit" class="btn btn-light search-btn" aria-label="Submit search">
-                      <i class="bi bi-search"></i>
-                  </button>
-              </form>
-          </div>
-      </div>
-  </nav>f
-
-  <!-- MAIN -->
-  <main class="container py-5 text-center">
-    {% block body %}{% endblock %}
+  <main>
+    {% block content %}{% endblock %}
   </main>
 
-  {% include 'footer.html' %}
-
-  <!-- FLASH MESSAGES -->
-  {% include 'flash_messages.html' %}
-  <script src="/static/js/bootstrap.bundle.min.js"></script>
-  <script>
-    const nav = document.getElementById("mainNav");
-
-    window.addEventListener("scroll", () => {
-      if (window.scrollY > 20) {
-        nav.classList.add("scrolled");
-      } else {
-        nav.classList.remove("scrolled");
-      }
-    });
-  </script>
+  <footer>
+    <div class="container">
+      <span>&copy; {{ now_year() }} {{ store_name }}. Built to grow, phase by phase.</span>
+      <span>Cash on Delivery · Free shipping over {{ currency }}{{ '{:,.0f}'.format(free_shipping_threshold()) }}</span>
+    </div>
+  </footer>
 
 </body>
 </html>

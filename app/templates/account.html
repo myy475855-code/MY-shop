@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}My account — {{ store_name }}{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="section-head"><h2>My account</h2></div>
+
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items:start;">
+    <div class="form-card">
+      <h3 style="margin-bottom:4px;">{{ current_user.name }}</h3>
+      <p>{{ current_user.email }}</p>
+      <div class="pill-row" style="margin-top:16px;">
+        <a href="{{ url_for('orders.order_list') }}" class="btn btn-outline btn-small">My orders</a>
+        <a href="{{ url_for('wishlist.view_wishlist') }}" class="btn btn-outline btn-small">My wishlist</a>
+      </div>
+    </div>
+
+    <div>
+      <h3>Delivery addresses</h3>
+      {% if addresses %}
+        {% for addr in addresses %}
+          <div class="form-card" style="max-width:none; padding:18px; margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <strong>{{ addr.full_name }}</strong> {% if addr.is_default %}<span class="status-pill status-Delivered">Default</span>{% endif %}
+                <p style="margin:6px 0 0;">{{ addr.address_line }}, {{ addr.city }}</p>
+                <p style="margin:2px 0 0;">{{ addr.phone }}</p>
+              </div>
+              <form action="{{ url_for('main.delete_address', address_id=addr.id) }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost btn-small">Remove</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No saved addresses yet — add one below so checkout is quicker.</p>
+      {% endif %}
+
+      <details style="margin-top:12px;">
+        <summary style="cursor:pointer; font-weight:600; color: var(--gold-deep);">+ Add a new address</summary>
+        <form action="{{ url_for('main.add_address') }}" method="post" class="form-card" style="max-width:none; margin-top:14px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="field">
+            <label for="full_name">Full name</label>
+            <input type="text" id="full_name" name="full_name" required>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="phone">Phone</label>
+              <input type="text" id="phone" name="phone" required>
+            </div>
+            <div class="field">
+              <label for="city">City</label>
+              <input type="text" id="city" name="city" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="address_line">Address</label>
+            <textarea id="address_line" name="address_line" rows="2" required></textarea>
+          </div>
+          <div class="field-check">
+            <input type="checkbox" id="is_default" name="is_default">
+            <label for="is_default" style="margin:0;">Make this my default address</label>
+          </div>
+          <button type="submit" class="btn btn-primary">Save address</button>
+        </form>
+      </details>
+    </div>
+  </div>
+</section>
+{% endblock %}

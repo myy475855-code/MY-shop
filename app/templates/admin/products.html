@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Products — Admin{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="admin-shell">
+    {% set active = 'products' %}
+    {% include "admin/_nav.html" %}
+
+    <div>
+      <div class="section-head">
+        <h2>Products</h2>
+        <a href="{{ url_for('admin.product_new') }}" class="btn btn-primary btn-small">+ Add product</a>
+      </div>
+
+      {% if products %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {% for p in products %}
+                <tr>
+                  <td>
+                    {% if p.image_filename %}
+                      <img class="thumb-sm" src="{{ url_for('static', filename='uploads/' ~ p.image_filename) }}" alt="">
+                    {% else %}
+                      <div class="thumb-sm"></div>
+                    {% endif %}
+                  </td>
+                  <td>{{ p.name }}</td>
+                  <td>{{ p.category.name if p.category else '—' }}</td>
+                  <td>{{ currency }}{{ '{:,.0f}'.format(p.current_price) }}</td>
+                  <td>{{ p.stock }}</td>
+                  <td>
+                    {% if not p.is_active %}<span class="status-pill status-Cancelled">Hidden</span>
+                    {% elif p.stock <= 0 %}<span class="status-pill status-Cancelled">Out of stock</span>
+                    {% elif p.low_stock %}<span class="status-pill status-Pending">Low stock</span>
+                    {% else %}<span class="status-pill status-Delivered">Active</span>{% endif %}
+                  </td>
+                  <td style="display:flex; gap:6px;">
+                    <a href="{{ url_for('admin.product_edit', product_id=p.id) }}" class="btn btn-ghost btn-small">Edit</a>
+                    <form action="{{ url_for('admin.product_delete', product_id=p.id) }}" method="post" onsubmit="return confirm('Delete {{ p.name }}?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <h3>No products yet</h3>
+          <a href="{{ url_for('admin.product_new') }}" class="btn btn-primary">Add your first product</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

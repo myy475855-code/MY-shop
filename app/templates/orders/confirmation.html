@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Order confirmed — {{ store_name }}{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="empty-state" style="max-width:520px; margin:0 auto;">
+    <div style="font-family: var(--font-display); font-size:2.4rem; color: var(--teal); margin-bottom:10px;">&#10003;</div>
+    <h3>Order placed!</h3>
+    <p>Order <strong>{{ order.order_number }}</strong> is confirmed. You'll pay {{ currency }}{{ '{:,.0f}'.format(order.total) }} by Cash on Delivery when it arrives.</p>
+    <div style="display:flex; gap:12px; justify-content:center; margin-top:10px;">
+      <a href="{{ url_for('orders.order_detail', order_number=order.order_number) }}" class="btn btn-primary">Track this order</a>
+      <a href="{{ url_for('main.shop') }}" class="btn btn-outline">Keep shopping</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

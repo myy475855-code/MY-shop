@@ -1,76 +1,104 @@
-# app/__init__.py
 import os
-from pathlib import Path
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from itsdangerous import URLSafeTimedSerializer
-from dotenv import load_dotenv
-from flask_mail import Mail
+from flask_wtf import CSRFProtect
+from flask_migrate import Migrate
 
-# --- Extensions ---
+from config import Config
+
 db = SQLAlchemy()
 login_manager = LoginManager()
-serializer = None
-mail = Mail()  # Flask-Mail instance
+csrf = CSRFProtect()
+migrate = Migrate()
 
-def create_app():
-    # --- Load environment variables ---
-    load_dotenv()
-    BASE_DIR = Path(__file__).resolve().parent
-    UPLOAD_FOLDER = BASE_DIR / "static" / "uploads"
-    UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
-    # --- Initialize Flask app ---
-    app = Flask(__name__, static_folder="static", template_folder="templates")
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
 
-    # --- App Config ---
-    app.config["SECRET_KEY"] = os.environ.get("MYSHOP_SECRET", "dev-secret-key")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-        "DATABASE_URL", f"sqlite:///{BASE_DIR/'958ce1b60d45351e845d1c8501a60d4865e00665bc3a3f3b5b2f351d92aa.db'}"
-    )
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["UPLOAD_FOLDER"] = str(UPLOAD_FOLDER)
-    app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8MB
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-    # --- Flask-Mail Config ---
-    app.config["MAIL_SERVER"] = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
-    app.config["MAIL_PORT"] = int(os.environ.get("MAIL_PORT", 587))
-    app.config["MAIL_USE_TLS"] = os.environ.get("MAIL_USE_TLS", "True") == "True"
-    app.config["MAIL_USE_SSL"] = os.environ.get("MAIL_USE_SSL", "False") == "True"
-    app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME")
-    app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")
-    app.config["MAIL_DEFAULT_SENDER"] = os.environ.get(
-        "MAIL_DEFAULT_SENDER", "no-reply@myshop.local"
-    )
-    app.config["MAIL_DEBUG"] = True
-    
-    app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID")
-
-    # --- Initialize extensions ---
     db.init_app(app)
     login_manager.init_app(app)
-    mail.init_app(app)
-    login_manager.login_view = "login"
+    csrf.init_app(app)
+    migrate.init_app(app, db)
+
+    login_manager.login_view = "auth.login"
+    login_manager.login_message = "Please sign in to continue."
     login_manager.login_message_category = "info"
 
-    # --- Serializer for token-based operations ---
-    global serializer
-    serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
-
-    # --- User loader for Flask-Login ---
     from app.models import User
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
 
-    # --- Register all routes ---
-    from app import routes
-    routes.register_routes(app)
+    # ---- Blueprints ----
+    from app.routes.main import main_bp
+    from app.routes.auth import auth_bp
+    from app.routes.cart import cart_bp
+    from app.routes.wishlist import wishlist_bp
+    from app.routes.checkout import checkout_bp
+    from app.routes.orders import orders_bp
+    from app.routes.admin import admin_bp
 
-    # --- Create database tables if they don't exist ---
-    with app.app_context():
-        db.create_all()
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(cart_bp, url_prefix="/cart")
+    app.register_blueprint(wishlist_bp, url_prefix="/wishlist")
+    app.register_blueprint(checkout_bp, url_prefix="/checkout")
+    app.register_blueprint(orders_bp, url_prefix="/orders")
+    app.register_blueprint(admin_bp, url_prefix="/admin")
+
+    # ---- Template globals ----
+    @app.context_processor
+    def inject_globals():
+        from datetime import datetime
+        from flask_login import current_user
+        from app.models import CartItem, Category
+
+        cart_count = 0
+        if current_user.is_authenticated:
+            cart_count = sum(
+                item.quantity
+                for item in CartItem.query.filter_by(user_id=current_user.id).all()
+            )
+
+        def nav_categories():
+            return Category.query.order_by(Category.name).limit(8).all()
+
+        def now_year():
+            return datetime.utcnow().year
+
+        def free_shipping_threshold():
+            return app.config["FREE_SHIPPING_THRESHOLD"]
+
+        return {
+            "store_name": app.config["STORE_NAME"],
+            "currency": app.config["CURRENCY_SYMBOL"],
+            "cart_count": cart_count,
+            "nav_categories": nav_categories,
+            "now_year": now_year,
+            "free_shipping_threshold": free_shipping_threshold,
+        }
+
+    # ---- Error handlers ----
+    @app.errorhandler(404)
+    def not_found(e):
+        return render_template("errors/404.html"), 404
+
+    @app.errorhandler(500)
+    def server_error(e):
+        return render_template("errors/500.html"), 500
+
+    # ---- CLI ----
+    @app.cli.command("seed")
+    def seed_command():
+        """Seed the database with demo categories and products."""
+        from seed import run_seed
+
+        run_seed()
+        print("Database seeded.")
 
     return app

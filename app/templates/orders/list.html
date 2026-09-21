@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}My orders — {{ store_name }}{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="section-head"><h2>My orders</h2></div>
+
+  {% if orders %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td><strong>{{ order.order_number }}</strong></td>
+              <td>{{ order.created_at.strftime('%d %b %Y') }}</td>
+              <td>{{ order.items|length }} item{{ 's' if order.items|length != 1 else '' }}</td>
+              <td>{{ currency }}{{ '{:,.0f}'.format(order.total) }}</td>
+              <td><span class="status-pill status-{{ order.status }}">{{ order.status }}</span></td>
+              <td><a href="{{ url_for('orders.order_detail', order_number=order.order_number) }}" class="btn btn-ghost btn-small">View</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>No orders yet</h3>
+      <p>Your placed orders will show up here.</p>
+      <a href="{{ url_for('main.shop') }}" class="btn btn-primary">Start shopping</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

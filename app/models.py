@@ -1,125 +1,181 @@
+import re
 from datetime import datetime
+
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+
 from app import db
-import json
 
-# ===================== USER MODEL =====================
-class User(db.Model, UserMixin):
+
+def slugify(text):
+    text = text.lower().strip()
+    text = re.sub(r"[^a-z0-9]+", "-", text)
+    return text.strip("-")
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = "users"
+
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True, nullable=False)
+    name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
-    first_name = db.Column(db.String(100))
-    last_name = db.Column(db.String(100))
-    phone = db.Column(db.String(50))
-    country = db.Column(db.String(100))
-    province = db.Column(db.String(100))
-    city = db.Column(db.String(100))
-    address = db.Column(db.Text)
-    zip_code = db.Column(db.String(20))
-    photo = db.Column(db.String(255), nullable=True)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
 
-    # Relationships
+    addresses = db.relationship("Address", backref="user", lazy=True, cascade="all, delete-orphan")
     orders = db.relationship("Order", backref="user", lazy=True)
-    cart_items = db.relationship("Cart", backref="user", lazy=True)
-    comments = db.relationship("Comment", backref="user", lazy=True)
-    ratings = db.relationship("Rating", backref="user", lazy=True)
-    favorites = db.relationship("Favorite", backref="user", lazy=True)
+    cart_items = db.relationship("CartItem", backref="user", lazy=True, cascade="all, delete-orphan")
+    wishlist_items = db.relationship("WishlistItem", backref="user", lazy=True, cascade="all, delete-orphan")
 
-    # Password utilities
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+    def set_password(self, raw_password):
+        self.password_hash = generate_password_hash(raw_password)
 
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+    def check_password(self, raw_password):
+        return check_password_hash(self.password_hash, raw_password)
 
 
-# ===================== PRODUCT MODEL =====================
-class Product(db.Model):
+class Category(db.Model):
+    __tablename__ = "categories"
+
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text)
-    specifications = db.Column(db.Text)  # Could be JSON string
-    categories = db.Column(db.String(500))  # comma-separated
-    price = db.Column(db.Float, default=0.0)
-    discount_price = db.Column(db.Float, default=0.0)
-    main_image = db.Column(db.String(500))
-    image2 = db.Column(db.String(500))
-    image3 = db.Column(db.String(500))
-    image4 = db.Column(db.String(500))
+    name = db.Column(db.String(120), unique=True, nullable=False)
+    slug = db.Column(db.String(140), unique=True, nullable=False)
+
+    products = db.relationship("Product", backref="category", lazy=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not self.slug and self.name:
+            self.slug = slugify(self.name)
+
+
+class Product(db.Model):
+    __tablename__ = "products"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    slug = db.Column(db.String(220), unique=True, nullable=False)
+    description = db.Column(db.Text, default="")
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    sale_price = db.Column(db.Numeric(10, 2), nullable=True)
+    stock = db.Column(db.Integer, default=0, nullable=False)
+    image_filename = db.Column(db.String(255), nullable=True)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
-    cart_items = db.relationship("Cart", backref="product", lazy=True)
-    order_items = db.relationship("OrderItem", backref="product", lazy=True)
-    comments = db.relationship("Comment", backref="product", lazy=True)
-    ratings = db.relationship("Rating", backref="product", lazy=True)
-    favorites = db.relationship("Favorite", backref="product", lazy=True)
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not self.slug and self.name:
+            base = slugify(self.name)
+            self.slug = base
+
+    @property
+    def current_price(self):
+        return self.sale_price if self.sale_price else self.price
+
+    @property
+    def discount_percent(self):
+        if self.sale_price and self.price and self.price > 0:
+            return round((1 - (float(self.sale_price) / float(self.price))) * 100)
+        return 0
+
+    @property
+    def in_stock(self):
+        return self.stock > 0
+
+    @property
+    def low_stock(self):
+        return 0 < self.stock <= 5
 
 
-# ===================== CART MODEL =====================
-class Cart(db.Model):
+class CartItem(db.Model):
+    __tablename__ = "cart_items"
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)
-    quantity = db.Column(db.Integer, default=1)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    quantity = db.Column(db.Integer, default=1, nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    product = db.relationship("Product")
 
-# ===================== ORDER MODEL =====================
+    __table_args__ = (db.UniqueConstraint("user_id", "product_id", name="uq_cart_user_product"),)
+
+    @property
+    def line_total(self):
+        return float(self.product.current_price) * self.quantity
+
+
+class WishlistItem(db.Model):
+    __tablename__ = "wishlist_items"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    product = db.relationship("Product")
+
+    __table_args__ = (db.UniqueConstraint("user_id", "product_id", name="uq_wishlist_user_product"),)
+
+
+class Address(db.Model):
+    __tablename__ = "addresses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    full_name = db.Column(db.String(150), nullable=False)
+    phone = db.Column(db.String(30), nullable=False)
+    address_line = db.Column(db.String(255), nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    is_default = db.Column(db.Boolean, default=False)
+
+
+ORDER_STATUSES = ["Pending", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"]
+
+
 class Order(db.Model):
+    __tablename__ = "orders"
+
     id = db.Column(db.Integer, primary_key=True)
-    order_number = db.Column(db.String(100), unique=True, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    total_amount = db.Column(db.Float, default=0.0)
-    shipping = db.Column(db.Float, default=0.0)
-    status = db.Column(db.String(50), default="Pending")
-    payment_method = db.Column(db.String(20), default="cod")  # cod or card
+    order_number = db.Column(db.String(20), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
+
+    subtotal = db.Column(db.Numeric(10, 2), nullable=False)
+    shipping_fee = db.Column(db.Numeric(10, 2), default=0)
+    total = db.Column(db.Numeric(10, 2), nullable=False)
+
+    payment_method = db.Column(db.String(30), default="Cash on Delivery")
+    status = db.Column(db.String(30), default="Pending", nullable=False)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    items = db.relationship("OrderItem", backref="order", lazy=True)
+    address = db.relationship("Address")
+    items = db.relationship("OrderItem", backref="order", lazy=True, cascade="all, delete-orphan")
+
+    @property
+    def status_index(self):
+        try:
+            return ORDER_STATUSES.index(self.status)
+        except ValueError:
+            return 0
 
 
-# ===================== ORDER ITEM MODEL =====================
 class OrderItem(db.Model):
+    __tablename__ = "order_items"
+
     id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey("order.id"), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    product_name = db.Column(db.String(255))
-    unit_price = db.Column(db.Float)
-    quantity = db.Column(db.Integer, default=1)
-    discount_price = db.Column(db.Float, default=0.0)
+    order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=True)
 
+    product_name = db.Column(db.String(200), nullable=False)
+    unit_price = db.Column(db.Numeric(10, 2), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
 
-# ===================== COMMENT MODEL =====================
-class Comment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    name = db.Column(db.String(120))
-    content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-# ===================== RATING MODEL =====================
-class Rating(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)
-    stars = db.Column(db.Integer, nullable=False)  # 1–5
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    __table_args__ = (db.UniqueConstraint("user_id", "product_id"),)
-
-
-# ===================== FAVORITE MODEL =====================
-class Favorite(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    __table_args__ = (db.UniqueConstraint("user_id", "product_id"),)
+    @property
+    def line_total(self):
+        return float(self.unit_price) * self.quantity

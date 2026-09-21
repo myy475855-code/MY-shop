@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Orders — Admin{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="admin-shell">
+    {% set active = 'orders' %}
+    {% include "admin/_nav.html" %}
+
+    <div>
+      <div class="section-head"><h2>Orders</h2></div>
+
+      <form class="filter-bar" method="get">
+        <select name="status" onchange="this.form.submit()">
+          <option value="">All statuses</option>
+          {% for s in statuses %}
+            <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </form>
+
+      {% if orders %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {% for order in orders %}
+                <tr>
+                  <td><strong>{{ order.order_number }}</strong></td>
+                  <td>{{ order.user.name }}</td>
+                  <td>{{ order.created_at.strftime('%d %b %Y') }}</td>
+                  <td>{{ currency }}{{ '{:,.0f}'.format(order.total) }}</td>
+                  <td><span class="status-pill status-{{ order.status }}">{{ order.status }}</span></td>
+                  <td><a href="{{ url_for('admin.order_detail', order_number=order.order_number) }}" class="btn btn-ghost btn-small">Manage</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>No orders match this filter.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

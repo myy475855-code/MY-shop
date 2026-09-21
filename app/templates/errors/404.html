@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Page not found — {{ store_name }}{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="empty-state">
+    <h3>404 — We couldn't find that page</h3>
+    <p>The link might be broken, or the page may have moved.</p>
+    <a href="{{ url_for('main.home') }}" class="btn btn-primary">Back to home</a>
+  </div>
+</section>
+{% endblock %}

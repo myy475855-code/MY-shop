@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Create account — {{ store_name }}{% endblock %}
+{% block content %}
+<div class="auth-shell">
+  <div class="form-card">
+    <h2>Create your account</h2>
+    <p>Join {{ store_name }} to start adding items to your cart.</p>
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="field">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" value="{{ name or '' }}" required autofocus>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="{{ email or '' }}" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required minlength="6">
+        <div class="field-hint">At least 6 characters.</div>
+      </div>
+      <div class="field">
+        <label for="confirm_password">Confirm password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Create account</button>
+    </form>
+    <div class="auth-switch">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></div>
+  </div>
+</div>
+{% endblock %}

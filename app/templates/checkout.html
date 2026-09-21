@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Checkout — {{ store_name }}{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="section-head"><h2>Checkout</h2></div>
+
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="cart-layout">
+      <div>
+        <h3>Delivery address</h3>
+        {% if addresses %}
+          {% for addr in addresses %}
+            <label class="form-card" style="max-width:none; display:flex; gap:14px; align-items:flex-start; margin-bottom:12px; cursor:pointer;">
+              <input type="radio" name="address_id" value="{{ addr.id }}" {% if addr.is_default or loop.first %}checked{% endif %} style="margin-top:4px;">
+              <span>
+                <strong>{{ addr.full_name }}</strong><br>
+                {{ addr.address_line }}, {{ addr.city }}<br>
+                {{ addr.phone }}
+              </span>
+            </label>
+          {% endfor %}
+        {% else %}
+          <p>You don't have a saved address yet. Add one on your <a href="{{ url_for('main.account') }}" style="color: var(--gold-deep); font-weight:600;">account page</a>, then come back here.</p>
+        {% endif %}
+
+        <h3 style="margin-top:28px;">Payment method</h3>
+        <div class="form-card" style="max-width:none;">
+          <div class="field-check">
+            <input type="radio" checked disabled>
+            <label style="margin:0;">Cash on Delivery — pay when your order arrives.</label>
+          </div>
+          <p class="field-hint">More payment methods are coming in a later phase.</p>
+        </div>
+
+        <h3 style="margin-top:28px;">Items ({{ items|length }})</h3>
+        {% for item in items %}
+          <div class="cart-line" style="grid-template-columns: 56px 1fr auto;">
+            {% if item.product.image_filename %}
+              <img src="{{ url_for('static', filename='uploads/' ~ item.product.image_filename) }}" alt="{{ item.product.name }}" style="width:56px;height:56px;">
+            {% else %}
+              <div class="cart-thumb-empty" style="width:56px;height:56px;"></div>
+            {% endif %}
+            <span>{{ item.product.name }} &times; {{ item.quantity }}</span>
+            <strong>{{ currency }}{{ '{:,.0f}'.format(item.line_total) }}</strong>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="summary-card">
+        <h3>Order summary</h3>
+        <div class="summary-row"><span>Subtotal</span><span>{{ currency }}{{ '{:,.0f}'.format(subtotal) }}</span></div>
+        <div class="summary-row"><span>Shipping</span><span>{{ 'Free' if shipping == 0 else currency + '{:,.0f}'.format(shipping) }}</span></div>
+        <div class="summary-row total"><span>Total</span><span>{{ currency }}{{ '{:,.0f}'.format(total) }}</span></div>
+        <button type="submit" class="btn btn-gold btn-block" style="margin-top:14px;" {% if not addresses %}disabled{% endif %}>Place order</button>
+      </div>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,8 @@
+<nav class="admin-nav">
+  <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if active == 'dashboard' }}">Dashboard</a>
+  <a href="{{ url_for('admin.product_list') }}" class="{{ 'active' if active == 'products' }}">Products</a>
+  <a href="{{ url_for('admin.category_list') }}" class="{{ 'active' if active == 'categories' }}">Categories</a>
+  <a href="{{ url_for('admin.order_list') }}" class="{{ 'active' if active == 'orders' }}">Orders</a>
+  <a href="{{ url_for('admin.customer_list') }}" class="{{ 'active' if active == 'customers' }}">Customers</a>
+  <a href="{{ url_for('main.home') }}">← Back to store</a>
+</nav>

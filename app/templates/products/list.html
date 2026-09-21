@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Shop — {{ store_name }}{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="section-head">
+    <h2>{% if active_category %}{{ active_category.name }}{% elif q %}Results for "{{ q }}"{% else %}All products{% endif %}</h2>
+    <span style="color: var(--ink-faint); font-size: 0.85rem;">{{ products|length }} item{{ 's' if products|length != 1 else '' }}</span>
+  </div>
+
+  <form class="filter-bar" method="get" action="{{ url_for('main.shop') }}">
+    {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+    <select name="category" onchange="this.form.submit()">
+      <option value="">All categories</option>
+      {% for cat in categories %}
+        <option value="{{ cat.slug }}" {% if active_category and active_category.slug == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="sort" onchange="this.form.submit()">
+      <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest first</option>
+      <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>Price: low to high</option>
+      <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>Price: high to low</option>
+    </select>
+    {% if active_category or q %}
+      <a class="btn btn-ghost btn-small" href="{{ url_for('main.shop') }}">Clear filters</a>
+    {% endif %}
+  </form>
+
+  {% if products %}
+    <div class="product-grid">
+      {% for product in products %}
+        {% include "products/_card.html" %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>No products match your search</h3>
+      <p>Try a different keyword or clear your filters.</p>
+      <a class="btn btn-outline" href="{{ url_for('main.shop') }}">Clear filters</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

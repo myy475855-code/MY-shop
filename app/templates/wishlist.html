@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Wishlist — {{ store_name }}{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="section-head"><h2>Your wishlist</h2></div>
+
+  {% if items %}
+    <div class="product-grid">
+      {% for item in items %}
+        <div class="product-card">
+          <div class="product-thumb">
+            <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}">
+              {% if item.product.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' ~ item.product.image_filename) }}" alt="{{ item.product.name }}">
+              {% else %}
+                <span class="placeholder">{{ item.product.name[:1] }}</span>
+              {% endif %}
+            </a>
+          </div>
+          <div class="product-body">
+            <a href="{{ url_for('main.product_detail', slug=item.product.slug) }}" class="product-name">{{ item.product.name }}</a>
+            <span class="price">{{ currency }}{{ '{:,.0f}'.format(item.product.current_price) }}</span>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <form action="{{ url_for('wishlist.move_to_cart', item_id=item.id) }}" method="post" style="flex:1;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-primary btn-small btn-block" {% if not item.product.in_stock %}disabled{% endif %}>Move to cart</button>
+              </form>
+              <form action="{{ url_for('wishlist.toggle_wishlist', product_id=item.product.id) }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost btn-small">Remove</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>Nothing saved yet</h3>
+      <p>Tap the heart on any product to save it here.</p>
+      <a href="{{ url_for('main.shop') }}" class="btn btn-primary">Browse products</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

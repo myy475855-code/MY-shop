@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Categories — Admin{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="admin-shell">
+    {% set active = 'categories' %}
+    {% include "admin/_nav.html" %}
+
+    <div>
+      <div class="section-head"><h2>Categories</h2></div>
+
+      <form action="{{ url_for('admin.category_list') }}" method="post" style="display:flex; gap:10px; margin-bottom:24px; max-width:420px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="text" name="name" placeholder="New category name" required style="flex:1; padding:11px 13px; border:1px solid var(--line-strong); border-radius: var(--radius);">
+        <button type="submit" class="btn btn-primary">Add</button>
+      </form>
+
+      {% if categories %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Slug</th><th>Products</th><th></th></tr></thead>
+            <tbody>
+              {% for cat in categories %}
+                <tr>
+                  <td>{{ cat.name }}</td>
+                  <td>{{ cat.slug }}</td>
+                  <td>{{ cat.products|length }}</td>
+                  <td>
+                    <form action="{{ url_for('admin.category_delete', category_id=cat.id) }}" method="post" onsubmit="return confirm('Delete {{ cat.name }}?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>No categories yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Order {{ order.order_number }} — Admin{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="admin-shell">
+    {% set active = 'orders' %}
+    {% include "admin/_nav.html" %}
+
+    <div>
+      <div class="section-head">
+        <h2>Order {{ order.order_number }}</h2>
+        <span class="status-pill status-{{ order.status }}">{{ order.status }}</span>
+      </div>
+
+      <div class="cart-layout">
+        <div>
+          <h3>Items</h3>
+          {% for item in order.items %}
+            <div class="cart-line" style="grid-template-columns: 1fr auto;">
+              <span>{{ item.product_name }} &times; {{ item.quantity }}</span>
+              <strong>{{ currency }}{{ '{:,.0f}'.format(item.line_total) }}</strong>
+            </div>
+          {% endfor %}
+
+          <h3 style="margin-top:24px;">Customer</h3>
+          <p style="margin:0;">{{ order.user.name }} — {{ order.user.email }}</p>
+
+          <h3 style="margin-top:24px;">Delivery address</h3>
+          <p style="margin:0;">
+            {{ order.address.full_name }}<br>
+            {{ order.address.address_line }}, {{ order.address.city }}<br>
+            {{ order.address.phone }}
+          </p>
+        </div>
+
+        <div class="summary-card">
+          <h3>Summary</h3>
+          <div class="summary-row"><span>Subtotal</span><span>{{ currency }}{{ '{:,.0f}'.format(order.subtotal) }}</span></div>
+          <div class="summary-row"><span>Shipping</span><span>{{ 'Free' if order.shipping_fee == 0 else currency + '{:,.0f}'.format(order.shipping_fee) }}</span></div>
+          <div class="summary-row total"><span>Total</span><span>{{ currency }}{{ '{:,.0f}'.format(order.total) }}</span></div>
+
+          <form action="{{ url_for('admin.update_order_status', order_number=order.order_number) }}" method="post" style="margin-top:18px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="field">
+              <label for="status">Update status</label>
+              <select id="status" name="status">
+                {% for s in statuses %}
+                  <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Update status</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

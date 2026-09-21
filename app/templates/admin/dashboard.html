@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Admin — {{ store_name }}{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="admin-shell">
+    {% set active = 'dashboard' %}
+    {% include "admin/_nav.html" %}
+
+    <div>
+      <div class="section-head"><h2>Dashboard</h2></div>
+
+      <div class="dash-grid">
+        <div class="dash-card">
+          <div class="label">Total sales</div>
+          <div class="value">{{ currency }}{{ '{:,.0f}'.format(total_sales) }}</div>
+        </div>
+        <div class="dash-card">
+          <div class="label">Orders</div>
+          <div class="value">{{ total_orders }}</div>
+        </div>
+        <div class="dash-card">
+          <div class="label">Customers</div>
+          <div class="value">{{ total_customers }}</div>
+        </div>
+        <div class="dash-card">
+          <div class="label">Products</div>
+          <div class="value">{{ total_products }}</div>
+        </div>
+      </div>
+
+      {% if low_stock or out_of_stock %}
+        <div class="section-head"><h2>Stock alerts</h2></div>
+        <div class="table-wrap" style="margin-bottom:32px;">
+          <table>
+            <thead><tr><th>Product</th><th>Stock</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for p in out_of_stock %}
+                <tr><td>{{ p.name }}</td><td>0</td><td><span class="status-pill status-Cancelled">Out of stock</span></td></tr>
+              {% endfor %}
+              {% for p in low_stock %}
+                <tr><td>{{ p.name }}</td><td>{{ p.stock }}</td><td><span class="status-pill status-Pending">Low stock</span></td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+
+      <div class="section-head"><h2>Recent orders</h2></div>
+      {% if recent_orders %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {% for order in recent_orders %}
+                <tr>
+                  <td><strong>{{ order.order_number }}</strong></td>
+                  <td>{{ order.user.name }}</td>
+                  <td>{{ order.created_at.strftime('%d %b %Y') }}</td>
+                  <td>{{ currency }}{{ '{:,.0f}'.format(order.total) }}</td>
+                  <td><span class="status-pill status-{{ order.status }}">{{ order.status }}</span></td>
+                  <td><a href="{{ url_for('admin.order_detail', order_number=order.order_number) }}" class="btn btn-ghost btn-small">View</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>No orders placed yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
