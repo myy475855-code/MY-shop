@@ -67,7 +67,6 @@ myy_shop/
 │       ├── css/style.css
 │       └── uploads/        # product images land here
 ├── config.py
-├── seed.py
 ├── run.py
 └── requirements.txt
 ```
