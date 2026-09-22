@@ -51,6 +51,9 @@ ICONS = {
     "image": '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="9" r="1.6"/>'
              '<path d="M21 15l-5-5-9 9"/>',
     "chevron-right": '<polyline points="9 6 15 12 9 18"/>',
+    "menu": '<line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>',
+    "x": '<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>',
+    "refresh": '<path d="M21 11a9 9 0 1 0-2.6 6.4"/><polyline points="21 4 21 11 14 11"/>',
 }
 
 

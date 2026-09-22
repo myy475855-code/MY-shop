@@ -4,13 +4,15 @@
 <section class="section container">
   <div class="section-head"><h2>My account</h2></div>
 
-  <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items:start;">
+  <div class="account-grid">
     <div class="form-card">
-      <h3 style="margin-bottom:4px;">{{ current_user.name }}</h3>
+      <h3 style="margin-bottom:4px;">{{ icon('user', 18) }}{{ current_user.name }}</h3>
       <p>{{ current_user.email }}</p>
       <div class="pill-row" style="margin-top:16px;">
-        <a href="{{ url_for('orders.order_list') }}" class="btn btn-outline btn-small">My orders</a>
-        <a href="{{ url_for('wishlist.view_wishlist') }}" class="btn btn-outline btn-small">My wishlist</a>
+        <a href="{{ url_for('orders.order_list') }}" class="btn btn-outline btn-small">{{ icon('package', 15) }}My orders</a>
+        <a href="{{ url_for('wishlist.view_wishlist') }}" class="btn btn-outline btn-small">{{ icon('heart', 15) }}My wishlist</a>
+        <a href="{{ url_for('main.edit_profile') }}" class="btn btn-outline btn-small">{{ icon('edit', 15) }}Edit profile</a>
+        <a href="{{ url_for('main.change_password') }}" class="btn btn-outline btn-small">{{ icon('shield', 15) }}Change password</a>
       </div>
     </div>
 

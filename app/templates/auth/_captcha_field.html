@@ -1,0 +1,22 @@
+<div class="field">
+  <label for="captcha_answer">{{ icon('shield', 15) }}Type the code shown in the picture</label>
+  <div class="captcha-row">
+    <img src="{{ url_for('auth.captcha_image') }}" alt="CAPTCHA code" class="captcha-img" id="captcha-img">
+    <button type="button" class="btn btn-ghost btn-small captcha-refresh" id="captcha-refresh" aria-label="Get a new code">
+      {{ icon('refresh', 15) }}
+    </button>
+  </div>
+  <input type="text" id="captcha_answer" name="captcha_answer" class="captcha-input" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
+  <div class="field-hint">Case doesn't matter. Can't read it? Tap the refresh icon for a new one.</div>
+</div>
+<script>
+  (function () {
+    var refreshBtn = document.getElementById('captcha-refresh');
+    var img = document.getElementById('captcha-img');
+    if (refreshBtn && img) {
+      refreshBtn.addEventListener('click', function () {
+        img.src = "{{ url_for('auth.captcha_image') }}?t=" + Date.now();
+      });
+    }
+  })();
+</script>

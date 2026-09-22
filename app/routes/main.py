@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import or_
 
 from app import db
-from app.models import Product, Category, Address, WishlistItem
+from app.models import Product, Category, Address, WishlistItem, User
 
 main_bp = Blueprint("main", __name__)
 
@@ -131,3 +131,57 @@ def delete_address(address_id):
     db.session.commit()
     flash("Address removed.", "info")
     return redirect(url_for("main.account"))
+
+
+@main_bp.route("/account/edit", methods=["GET", "POST"])
+@login_required
+def edit_profile():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+
+        error = None
+        if not name or not email:
+            error = "Please fill in both your name and email."
+        elif User.query.filter(User.email == email, User.id != current_user.id).first():
+            error = "That email is already in use by another account."
+
+        if error:
+            flash(error, "error")
+            return render_template("account_edit.html", name=name, email=email)
+
+        current_user.name = name
+        current_user.email = email
+        db.session.commit()
+        flash("Your profile has been updated.", "success")
+        return redirect(url_for("main.account"))
+
+    return render_template("account_edit.html", name=current_user.name, email=current_user.email)
+
+
+@main_bp.route("/account/change-password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    if request.method == "POST":
+        current_password = request.form.get("current_password", "")
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        error = None
+        if not current_user.check_password(current_password):
+            error = "Your current password is incorrect."
+        elif len(new_password) < 6:
+            error = "New password must be at least 6 characters."
+        elif new_password != confirm_password:
+            error = "New passwords do not match."
+
+        if error:
+            flash(error, "error")
+            return render_template("change_password.html")
+
+        current_user.set_password(new_password)
+        db.session.commit()
+        flash("Your password has been changed.", "success")
+        return redirect(url_for("main.account"))
+
+    return render_template("change_password.html")

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Edit profile — {{ store_name }}{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="section-head"><h2>{{ icon('user', 20) }}Edit profile</h2></div>
+
+  <form method="post" class="form-card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="name">Full name</label>
+      <input type="text" id="name" name="name" value="{{ name }}" required autofocus>
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" value="{{ email }}" required>
+    </div>
+    <button type="submit" class="btn btn-primary">{{ icon('check-circle', 16) }}Save changes</button>
+    <a href="{{ url_for('main.account') }}" class="btn btn-ghost">Cancel</a>
+  </form>
+</section>
+{% endblock %}

@@ -24,7 +24,8 @@
         <label for="confirm_password">Confirm password</label>
         <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
       </div>
-      <button type="submit" class="btn btn-primary btn-block">Create account</button>
+      {% include "auth/_captcha_field.html" %}
+      <button type="submit" class="btn btn-primary btn-block">{{ icon('user-plus', 16) }}Create account</button>
     </form>
     <div class="auth-switch">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></div>
   </div>

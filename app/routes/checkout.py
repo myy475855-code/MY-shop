@@ -6,6 +6,7 @@ from flask_login import login_required, current_user
 
 from app import db
 from app.models import CartItem, Address, Order, OrderItem
+from app.email_utils import send_order_confirmation_email
 
 checkout_bp = Blueprint("checkout", __name__)
 
@@ -79,6 +80,10 @@ def checkout():
             db.session.delete(item)
 
         db.session.commit()
+        try:
+            send_order_confirmation_email(order)
+        except Exception:
+            current_app.logger.exception("Failed to send order confirmation email for %s", order.order_number)
         flash("Your order has been placed!", "success")
         return redirect(url_for("orders.order_confirmation", order_number=order.order_number))
 

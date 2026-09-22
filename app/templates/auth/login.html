@@ -15,11 +15,15 @@
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required>
       </div>
-      <div class="field-check">
-        <input type="checkbox" id="remember" name="remember">
-        <label for="remember" style="margin:0;">Keep me signed in</label>
+      <div class="field-check" style="justify-content:space-between; display:flex;">
+        <span class="field-check" style="margin:0;">
+          <input type="checkbox" id="remember" name="remember">
+          <label for="remember" style="margin:0;">Keep me signed in</label>
+        </span>
+        <a href="{{ url_for('auth.forgot_password') }}" style="font-size:0.85rem; color: var(--gold-deep); font-weight:600;">Forgot password?</a>
       </div>
-      <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+      {% include "auth/_captcha_field.html" %}
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:20px;">{{ icon('user', 16) }}Sign in</button>
     </form>
     <div class="auth-switch">New to {{ store_name }}? <a href="{{ url_for('auth.register') }}">Create an account</a></div>
   </div>

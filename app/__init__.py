@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf import CSRFProtect
 from flask_migrate import Migrate
+from flask_mail import Mail
 
 from config import Config
 
@@ -11,6 +12,7 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 migrate = Migrate()
+mail = Mail()
 
 
 def create_app(config_class=Config):
@@ -23,6 +25,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     csrf.init_app(app)
     migrate.init_app(app, db)
+    mail.init_app(app)
 
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Please sign in to continue."

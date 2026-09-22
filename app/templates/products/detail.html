@@ -2,8 +2,8 @@
 {% block title %}{{ product.name }} — {{ store_name }}{% endblock %}
 {% block content %}
 <section class="section container">
-  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:40px; align-items:start;">
-    <div class="product-thumb" style="aspect-ratio:1/1; border:1px solid var(--line); border-radius: var(--radius);">
+  <div class="product-detail-grid">
+    <div class="product-thumb product-detail-thumb">
       {% if product.image_filename %}
         <img src="{{ url_for('static', filename='uploads/' ~ product.image_filename) }}" alt="{{ product.name }}">
       {% else %}

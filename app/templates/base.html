@@ -26,7 +26,12 @@
         <button type="submit" aria-label="Search">{{ icon('search', 18) }}</button>
       </form>
 
-      <nav class="nav-links">
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+        {{ icon('menu', 22) }}
+      </button>
+
+      <nav class="nav-links" id="nav-links">
+        <button type="button" class="nav-close" id="nav-close" aria-label="Close menu">{{ icon('x', 20) }}</button>
         <a class="nav-link" href="{{ url_for('main.shop') }}">{{ icon('tag', 16) }}Shop</a>
         {% if current_user.is_authenticated %}
           <a class="nav-link" href="{{ url_for('wishlist.view_wishlist') }}">{{ icon('heart', 16) }}Wishlist</a>
@@ -42,11 +47,12 @@
           <a class="nav-link" href="{{ url_for('auth.logout') }}">{{ icon('log-out', 16) }}Sign out</a>
         {% else %}
           <a class="nav-link" href="{{ url_for('auth.login') }}">{{ icon('user', 16) }}Sign in</a>
-          <a class="text-white btn btn-primary btn-small" href="{{ url_for('auth.register') }}">{{ icon('user-plus', 16) }}Create account</a>
+          <a class="nav-link text-white btn btn-primary btn-small" href="{{ url_for('auth.register') }}">{{ icon('user-plus', 16) }}Create account</a>
         {% endif %}
       </nav>
     </div>
   </header>
+  <div class="nav-backdrop" id="nav-backdrop"></div>
 
   <div class="category-strip">
     <div class="container">
@@ -78,6 +84,39 @@
       <span style="display:inline-flex; align-items:center; gap:6px;">{{ icon('truck', 15) }}Cash on Delivery · Free shipping over {{ currency }}{{ '{:,.0f}'.format(free_shipping_threshold()) }}</span>
     </div>
   </footer>
+
+  <script>
+    (function () {
+      var toggle = document.getElementById('nav-toggle');
+      var links = document.getElementById('nav-links');
+      var backdrop = document.getElementById('nav-backdrop');
+      var closeBtn = document.getElementById('nav-close');
+      if (!toggle || !links) return;
+
+      function closeMenu() {
+        links.classList.remove('open');
+        backdrop.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('nav-locked');
+      }
+      function toggleMenu() {
+        var isOpen = links.classList.toggle('open');
+        backdrop.classList.toggle('open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        document.body.classList.toggle('nav-locked', isOpen);
+      }
+
+      toggle.addEventListener('click', toggleMenu);
+      backdrop.addEventListener('click', closeMenu);
+      if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+      links.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', closeMenu);
+      });
+      window.addEventListener('resize', function () {
+        if (window.innerWidth > 900) closeMenu();
+      });
+    })();
+  </script>
 
 </body>
 </html>
