@@ -26,6 +26,7 @@
     </div>
   {% else %}
     <div class="empty-state">
+      {{ icon('package', 40) }}
       <h3>No orders yet</h3>
       <p>Your placed orders will show up here.</p>
       <a href="{{ url_for('main.shop') }}" class="btn btn-primary">Start shopping</a>

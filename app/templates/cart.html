@@ -29,7 +29,7 @@
               <strong>{{ currency }}{{ '{:,.0f}'.format(item.line_total) }}</strong>
               <form action="{{ url_for('cart.remove_from_cart', item_id=item.id) }}" method="post">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-ghost btn-small" style="margin-top:6px;">Remove</button>
+                <button type="submit" class="btn btn-ghost btn-small" style="margin-top:6px;">{{ icon('trash', 13) }}Remove</button>
               </form>
             </div>
           </div>
@@ -47,11 +47,12 @@
           <p class="field-hint">Add {{ currency }}{{ '{:,.0f}'.format(threshold - subtotal) }} more for free shipping.</p>
         {% endif %}
         <div class="summary-row total"><span>Total</span><span>{{ currency }}{{ '{:,.0f}'.format(total) }}</span></div>
-        <a href="{{ url_for('checkout.checkout') }}" class="btn btn-gold btn-block" style="margin-top:14px;">Proceed to checkout</a>
+        <a href="{{ url_for('checkout.checkout') }}" class="btn btn-gold btn-block" style="margin-top:14px;">{{ icon('arrow-right', 16) }}Proceed to checkout</a>
       </div>
     </div>
   {% else %}
     <div class="empty-state">
+      {{ icon('cart', 40) }}
       <h3>Your cart is empty</h3>
       <p>Browse the shop and add something you like.</p>
       <a href="{{ url_for('main.shop') }}" class="btn btn-primary">Start shopping</a>

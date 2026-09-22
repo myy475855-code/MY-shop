@@ -9,7 +9,7 @@
     <div>
       <div class="section-head">
         <h2>Products</h2>
-        <a href="{{ url_for('admin.product_new') }}" class="btn btn-primary btn-small">+ Add product</a>
+        <a href="{{ url_for('admin.product_new') }}" class="btn btn-primary btn-small">{{ icon('plus-circle', 15) }}Add product</a>
       </div>
 
       {% if products %}
@@ -37,10 +37,10 @@
                     {% else %}<span class="status-pill status-Delivered">Active</span>{% endif %}
                   </td>
                   <td style="display:flex; gap:6px;">
-                    <a href="{{ url_for('admin.product_edit', product_id=p.id) }}" class="btn btn-ghost btn-small">Edit</a>
+                    <a href="{{ url_for('admin.product_edit', product_id=p.id) }}" class="btn btn-ghost btn-small">{{ icon('edit', 14) }}Edit</a>
                     <form action="{{ url_for('admin.product_delete', product_id=p.id) }}" method="post" onsubmit="return confirm('Delete {{ p.name }}?');">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                      <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                      <button type="submit" class="btn btn-danger btn-small">{{ icon('trash', 14) }}Delete</button>
                     </form>
                   </td>
                 </tr>
@@ -50,6 +50,7 @@
         </div>
       {% else %}
         <div class="empty-state">
+          {{ icon('box', 40) }}
           <h3>No products yet</h3>
           <a href="{{ url_for('admin.product_new') }}" class="btn btn-primary">Add your first product</a>
         </div>

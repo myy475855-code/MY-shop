@@ -36,6 +36,7 @@
     </div>
   {% else %}
     <div class="empty-state">
+      {{ icon('heart', 40) }}
       <h3>Nothing saved yet</h3>
       <p>Tap the heart on any product to save it here.</p>
       <a href="{{ url_for('main.shop') }}" class="btn btn-primary">Browse products</a>

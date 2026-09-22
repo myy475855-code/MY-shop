@@ -34,17 +34,19 @@
       {% if current_user.is_authenticated %}
         <div style="display:flex; gap:12px; margin-top:20px;">
           <form action="{{ url_for('cart.add_to_cart', product_id=product.id) }}" method="post" style="display:flex; gap:10px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input class="qty-input" type="number" name="quantity" value="1" min="1" max="{{ product.stock }}">
-            <button type="submit" class="btn btn-primary" {% if not product.in_stock %}disabled{% endif %}>Add to cart</button>
+            <button type="submit" class="btn btn-primary" {% if not product.in_stock %}disabled{% endif %}>{{ icon('cart', 16) }}Add to cart</button>
           </form>
           <form action="{{ url_for('wishlist.toggle_wishlist', product_id=product.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn {% if in_wishlist %}btn-danger{% else %}btn-outline{% endif %}">
-              {{ '♥ In wishlist' if in_wishlist else '♡ Add to wishlist' }}
+              {{ icon('heart', 16) }}{{ 'In wishlist' if in_wishlist else 'Add to wishlist' }}
             </button>
           </form>
         </div>
       {% else %}
-        <a href="{{ url_for('auth.login') }}" class="btn btn-primary" style="margin-top:20px;">Sign in to buy</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primary" style="margin-top:20px;">{{ icon('user', 16) }}Sign in to buy</a>
       {% endif %}
     </div>
   </div>

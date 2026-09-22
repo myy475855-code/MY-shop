@@ -28,6 +28,9 @@ def create_app(config_class=Config):
     login_manager.login_message = "Please sign in to continue."
     login_manager.login_message_category = "info"
 
+    from app.icons import icon
+    app.jinja_env.globals["icon"] = icon
+
     from app.models import User
 
     @login_manager.user_loader

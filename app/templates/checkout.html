@@ -8,7 +8,7 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="cart-layout">
       <div>
-        <h3>Delivery address</h3>
+        <h3>{{ icon('map-pin', 17) }}Delivery address</h3>
         {% if addresses %}
           {% for addr in addresses %}
             <label class="form-card" style="max-width:none; display:flex; gap:14px; align-items:flex-start; margin-bottom:12px; cursor:pointer;">
@@ -24,7 +24,7 @@
           <p>You don't have a saved address yet. Add one on your <a href="{{ url_for('main.account') }}" style="color: var(--gold-deep); font-weight:600;">account page</a>, then come back here.</p>
         {% endif %}
 
-        <h3 style="margin-top:28px;">Payment method</h3>
+        <h3 style="margin-top:28px;">{{ icon('truck', 17) }}Payment method</h3>
         <div class="form-card" style="max-width:none;">
           <div class="field-check">
             <input type="radio" checked disabled>
@@ -52,7 +52,7 @@
         <div class="summary-row"><span>Subtotal</span><span>{{ currency }}{{ '{:,.0f}'.format(subtotal) }}</span></div>
         <div class="summary-row"><span>Shipping</span><span>{{ 'Free' if shipping == 0 else currency + '{:,.0f}'.format(shipping) }}</span></div>
         <div class="summary-row total"><span>Total</span><span>{{ currency }}{{ '{:,.0f}'.format(total) }}</span></div>
-        <button type="submit" class="btn btn-gold btn-block" style="margin-top:14px;" {% if not addresses %}disabled{% endif %}>Place order</button>
+        <button type="submit" class="btn btn-gold btn-block" style="margin-top:14px;" {% if not addresses %}disabled{% endif %}>{{ icon('check-circle', 16) }}Place order</button>
       </div>
     </div>
   </form>

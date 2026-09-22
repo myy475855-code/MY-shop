@@ -9,17 +9,17 @@
       <h1>Good stuff, fair prices, straight to your door.</h1>
       <p class="lede">MYY SHOP is a no-fuss marketplace for everyday essentials — pay cash on delivery, track every order, and keep tabs on what you love.</p>
       <div class="hero-actions">
-        <a href="{{ url_for('main.shop') }}" class="btn btn-gold">Start shopping</a>
+        <a href="{{ url_for('main.shop') }}" class="btn btn-gold">{{ icon('shopping-bag', 16) }}Start shopping</a>
         {% if not current_user.is_authenticated %}
-          <a href="{{ url_for('auth.register') }}" class="btn btn-outline">Create an account</a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-outline">{{ icon('user-plus', 16) }}Create an account</a>
         {% endif %}
       </div>
     </div>
     <div class="hero-panel">
-      <div class="stat"><span>Delivery</span><b>Nationwide, COD</b></div>
-      <div class="stat"><span>Free shipping over</span><b>{{ currency }}{{ '{:,.0f}'.format(free_shipping_threshold()) }}</b></div>
-      <div class="stat"><span>Categories live</span><b>{{ categories|length }}</b></div>
-      <div class="stat"><span>Returns</span><b>Coming in Phase 5</b></div>
+      <div class="stat"><span>{{ icon('truck', 15) }}Delivery</span><b>Nationwide, COD</b></div>
+      <div class="stat"><span>{{ icon('tag', 15) }}Free shipping over</span><b>{{ currency }}{{ '{:,.0f}'.format(free_shipping_threshold()) }}</b></div>
+      <div class="stat"><span>{{ icon('layers', 15) }}Categories live</span><b>{{ categories|length }}</b></div>
+      <div class="stat"><span>{{ icon('package', 15) }}Returns</span><b>Coming in Phase 5</b></div>
     </div>
   </div>
 </section>
@@ -38,6 +38,7 @@
     </div>
   {% else %}
     <div class="empty-state">
+      {{ icon('box', 40) }}
       <h3>No products yet</h3>
       <p>Once the admin adds products, they'll show up here.</p>
       {% if current_user.is_authenticated and current_user.is_admin %}

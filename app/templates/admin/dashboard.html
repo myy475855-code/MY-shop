@@ -11,19 +11,19 @@
 
       <div class="dash-grid">
         <div class="dash-card">
-          <div class="label">Total sales</div>
+          <div class="label">{{ icon('trending-up', 14) }}Total sales</div>
           <div class="value">{{ currency }}{{ '{:,.0f}'.format(total_sales) }}</div>
         </div>
         <div class="dash-card">
-          <div class="label">Orders</div>
+          <div class="label">{{ icon('package', 14) }}Orders</div>
           <div class="value">{{ total_orders }}</div>
         </div>
         <div class="dash-card">
-          <div class="label">Customers</div>
+          <div class="label">{{ icon('users', 14) }}Customers</div>
           <div class="value">{{ total_customers }}</div>
         </div>
         <div class="dash-card">
-          <div class="label">Products</div>
+          <div class="label">{{ icon('box', 14) }}Products</div>
           <div class="value">{{ total_products }}</div>
         </div>
       </div>

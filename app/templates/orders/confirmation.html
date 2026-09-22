@@ -3,12 +3,12 @@
 {% block content %}
 <section class="section container">
   <div class="empty-state" style="max-width:520px; margin:0 auto;">
-    <div style="font-family: var(--font-display); font-size:2.4rem; color: var(--teal); margin-bottom:10px;">&#10003;</div>
+    <div style="color: var(--teal); margin-bottom:10px;">{{ icon('check-circle', 44, 'icon', '1.6') }}</div>
     <h3>Order placed!</h3>
     <p>Order <strong>{{ order.order_number }}</strong> is confirmed. You'll pay {{ currency }}{{ '{:,.0f}'.format(order.total) }} by Cash on Delivery when it arrives.</p>
     <div style="display:flex; gap:12px; justify-content:center; margin-top:10px;">
-      <a href="{{ url_for('orders.order_detail', order_number=order.order_number) }}" class="btn btn-primary">Track this order</a>
-      <a href="{{ url_for('main.shop') }}" class="btn btn-outline">Keep shopping</a>
+      <a href="{{ url_for('orders.order_detail', order_number=order.order_number) }}" class="btn btn-primary">{{ icon('package', 16) }}Track this order</a>
+      <a href="{{ url_for('main.shop') }}" class="btn btn-outline">{{ icon('shopping-bag', 16) }}Keep shopping</a>
     </div>
   </div>
 </section>

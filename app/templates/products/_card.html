@@ -16,7 +16,8 @@
     {% endif %}
     {% if current_user.is_authenticated %}
       <form action="{{ url_for('wishlist.toggle_wishlist', product_id=product.id) }}" method="post">
-        <button type="submit" class="wish-btn {% if product.id in (wishlist_ids or []) %}active{% endif %}" aria-label="Toggle wishlist">&#9825;</button>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="wish-btn {% if product.id in (wishlist_ids or []) %}active{% endif %}" aria-label="Toggle wishlist">{{ icon('heart', 16, 'icon') }}</button>
       </form>
     {% endif %}
   </div>
@@ -29,13 +30,14 @@
     </div>
     {% if current_user.is_authenticated %}
       <form action="{{ url_for('cart.add_to_cart', product_id=product.id) }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="quantity" value="1">
         <button type="submit" class="btn btn-primary btn-small btn-block" {% if not product.in_stock %}disabled{% endif %}>
-          {{ 'Add to cart' if product.in_stock else 'Out of stock' }}
+          {{ icon('cart', 15) }}{{ 'Add to cart' if product.in_stock else 'Out of stock' }}
         </button>
       </form>
     {% else %}
-      <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-small btn-block">Sign in to buy</a>
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-small btn-block">{{ icon('user', 15) }}Sign in to buy</a>
     {% endif %}
   </div>
 </div>
