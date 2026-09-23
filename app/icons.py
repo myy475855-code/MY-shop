@@ -54,6 +54,7 @@ ICONS = {
     "menu": '<line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>',
     "x": '<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>',
     "refresh": '<path d="M21 11a9 9 0 1 0-2.6 6.4"/><polyline points="21 4 21 11 14 11"/>',
+    "chevron-down": '<polyline points="6 9 12 15 18 9"/>',
 }
 
 

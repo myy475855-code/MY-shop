@@ -34,20 +34,36 @@
         <button type="button" class="nav-close" id="nav-close" aria-label="Close menu">{{ icon('x', 20) }}</button>
         <a class="nav-link" href="{{ url_for('main.shop') }}">{{ icon('tag', 16) }}Shop</a>
         {% if current_user.is_authenticated %}
-          <a class="nav-link" href="{{ url_for('wishlist.view_wishlist') }}">{{ icon('heart', 16) }}Wishlist</a>
-          <a class="nav-link" href="{{ url_for('cart.view_cart') }}">
-            {{ icon('cart', 16) }}Cart
+          <a class="nav-link nav-icon-only" href="{{ url_for('cart.view_cart') }}" aria-label="Cart">
+            {{ icon('cart', 18) }}<span class="nav-link-text">Cart</span>
             {% if cart_count %}<span class="nav-badge">{{ cart_count }}</span>{% endif %}
           </a>
-          <a class="nav-link" href="{{ url_for('orders.order_list') }}">{{ icon('package', 16) }}Orders</a>
-          <a class="nav-link" href="{{ url_for('main.account') }}">{{ icon('user', 16) }}{{ current_user.name.split(' ')[0] }}</a>
-          {% if current_user.is_admin %}
-            <a class="nav-link" href="{{ url_for('admin.dashboard') }}">{{ icon('shield', 16) }}Admin</a>
-          {% endif %}
-          <a class="nav-link" href="{{ url_for('auth.logout') }}">{{ icon('log-out', 16) }}Sign out</a>
+          <a class="nav-link nav-icon-only" href="{{ url_for('wishlist.view_wishlist') }}" aria-label="Wishlist">
+            {{ icon('heart', 18) }}<span class="nav-link-text">Wishlist</span>
+          </a>
+
+          <div class="nav-profile" id="nav-profile">
+            <button type="button" class="nav-profile-btn" id="nav-profile-btn" aria-haspopup="true" aria-expanded="false">
+              {{ icon('user', 17) }}
+              <span>{{ current_user.name.split(' ')[0] }}</span>
+              {{ icon('chevron-down', 14, 'icon nav-profile-chevron') }}
+            </button>
+            <div class="nav-profile-menu" id="nav-profile-menu">
+              <a href="{{ url_for('main.account') }}">{{ icon('user', 15) }}My account</a>
+              <a href="{{ url_for('orders.order_list') }}">{{ icon('package', 15) }}My orders</a>
+              <a href="{{ url_for('main.edit_profile') }}">{{ icon('edit', 15) }}Edit profile</a>
+              <a href="{{ url_for('main.change_password') }}">{{ icon('shield', 15) }}Change password</a>
+              {% if current_user.is_admin %}
+                <div class="nav-profile-divider"></div>
+                <a href="{{ url_for('admin.dashboard') }}">{{ icon('grid', 15) }}Admin dashboard</a>
+              {% endif %}
+              <div class="nav-profile-divider"></div>
+              <a href="{{ url_for('auth.logout') }}">{{ icon('log-out', 15) }}Sign out</a>
+            </div>
+          </div>
         {% else %}
           <a class="nav-link" href="{{ url_for('auth.login') }}">{{ icon('user', 16) }}Sign in</a>
-          <a class="nav-link text-white btn btn-primary btn-small" href="{{ url_for('auth.register') }}">{{ icon('user-plus', 16) }}Create account</a>
+          <a class="nav-link btn btn-primary btn-small" href="{{ url_for('auth.register') }}">{{ icon('user-plus', 16) }}Create account</a>
         {% endif %}
       </nav>
     </div>
@@ -63,16 +79,27 @@
     </div>
   </div>
 
-
-  <div class="flash-wrap">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="flash flash-{{ category if category != 'message' else 'info' }}">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-  </div>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="alert-backdrop" id="alert-backdrop">
+        <div class="alert-card" role="alertdialog" aria-modal="true">
+          {% for category, message in messages %}
+            {% set cat = category if category in ['success', 'error', 'info'] else 'info' %}
+            <div class="alert-row">
+              <div class="alert-icon alert-icon-{{ cat }}">
+                {{ icon('check-circle' if cat == 'success' else 'x-circle' if cat == 'error' else 'shield', 22) }}
+              </div>
+              <div class="alert-body">
+                <div class="alert-type">{{ 'Success' if cat == 'success' else 'Error' if cat == 'error' else 'Notice' }}</div>
+                <p class="alert-message">{{ message }}</p>
+              </div>
+            </div>
+          {% endfor %}
+          <button type="button" class="btn btn-primary btn-block" id="alert-ok-btn">{{ icon('check-circle', 16) }}OK</button>
+        </div>
+      </div>
+    {% endif %}
+  {% endwith %}
 
   <main>
     {% block content %}{% endblock %}
@@ -115,6 +142,54 @@
       window.addEventListener('resize', function () {
         if (window.innerWidth > 900) closeMenu();
       });
+    })();
+
+    // Profile dropdown
+    (function () {
+      var profile = document.getElementById('nav-profile');
+      var btn = document.getElementById('nav-profile-btn');
+      if (!profile || !btn) return;
+
+      function closeProfile() {
+        profile.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+      function toggleProfile(e) {
+        e.stopPropagation();
+        var isOpen = profile.classList.toggle('open');
+        btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      }
+
+      btn.addEventListener('click', toggleProfile);
+      document.addEventListener('click', function (e) {
+        if (!profile.contains(e.target)) closeProfile();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeProfile();
+      });
+    })();
+
+    // Alert card (replaces plain flash banners)
+    (function () {
+      var backdrop = document.getElementById('alert-backdrop');
+      var okBtn = document.getElementById('alert-ok-btn');
+      if (!backdrop || !okBtn) return;
+
+      function closeAlert() {
+        backdrop.classList.add('closing');
+        setTimeout(function () {
+          if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
+        }, 150);
+      }
+
+      okBtn.addEventListener('click', closeAlert);
+      backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) closeAlert();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAlert();
+      });
+      okBtn.focus();
     })();
   </script>
 
