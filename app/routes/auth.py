@@ -5,6 +5,7 @@ from app import db
 from app.models import User
 from app.captcha import verify_captcha, render_captcha_png
 from app.email_utils import verify_reset_token, send_reset_email
+from app.password_policy import validate_password_strength
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -32,10 +33,11 @@ def register():
         captcha_answer = request.form.get("captcha_answer", "")
 
         error = None
+        is_strong, strength_message = validate_password_strength(password)
         if not name or not email or not password:
             error = "Please fill in all fields."
-        elif len(password) < 6:
-            error = "Password must be at least 6 characters."
+        elif not is_strong:
+            error = strength_message
         elif password != confirm:
             error = "Passwords do not match."
         elif not verify_captcha(captcha_answer):
@@ -54,7 +56,7 @@ def register():
 
         login_user(user)
         flash(f"Welcome to MYY SHOP, {user.name.split(' ')[0]}!", "success")
-        return redirect(url_for("main.home"))
+        return redirect(url_for("main.onboarding_address"))
 
     return render_template("auth/register.html")
 
@@ -143,8 +145,9 @@ def reset_password(token):
         password = request.form.get("password", "")
         confirm = request.form.get("confirm_password", "")
 
-        if len(password) < 6:
-            flash("Password must be at least 6 characters.", "error")
+        is_strong, strength_message = validate_password_strength(password)
+        if not is_strong:
+            flash(strength_message, "error")
             return render_template("auth/reset_password.html", token=token)
         if password != confirm:
             flash("Passwords do not match.", "error")

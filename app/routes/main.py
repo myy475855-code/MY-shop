@@ -1,9 +1,13 @@
+from datetime import datetime
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from sqlalchemy import or_
 
 from app import db
-from app.models import Product, Category, Address, WishlistItem, User
+from app.models import Product, Category, Address, WishlistItem, User, Review
+from app.password_policy import validate_password_strength
+from app.locations import COUNTRIES, PAKISTAN_PROVINCES
 
 main_bp = Blueprint("main", __name__)
 
@@ -76,21 +80,112 @@ def product_detail(slug):
         .all()
     )
     in_wishlist = False
+    user_review = None
     if current_user.is_authenticated:
         in_wishlist = (
             WishlistItem.query.filter_by(user_id=current_user.id, product_id=product.id).first()
             is not None
         )
-    return render_template(
-        "products/detail.html", product=product, related=related, in_wishlist=in_wishlist
+        user_review = Review.query.filter_by(product_id=product.id, user_id=current_user.id).first()
+
+    reviews = (
+        Review.query.filter_by(product_id=product.id)
+        .order_by(Review.created_at.desc())
+        .all()
     )
+
+    return render_template(
+        "products/detail.html", product=product, related=related, in_wishlist=in_wishlist,
+        reviews=reviews, user_review=user_review,
+    )
+
+
+@main_bp.route("/product/<slug>/review", methods=["POST"])
+@login_required
+def submit_review(slug):
+    product = Product.query.filter_by(slug=slug, is_active=True).first_or_404()
+    rating = request.form.get("rating", type=int)
+    comment = request.form.get("comment", "").strip()
+
+    if not rating or rating < 1 or rating > 5:
+        flash("Please choose a star rating.", "error")
+        return redirect(url_for("main.product_detail", slug=slug) + "#reviews")
+
+    existing = Review.query.filter_by(product_id=product.id, user_id=current_user.id).first()
+    if existing:
+        existing.rating = rating
+        existing.comment = comment
+        existing.updated_at = datetime.utcnow()
+        flash("Your review has been updated.", "success")
+    else:
+        db.session.add(Review(product_id=product.id, user_id=current_user.id, rating=rating, comment=comment))
+        flash("Thanks for your review!", "success")
+
+    db.session.commit()
+    return redirect(url_for("main.product_detail", slug=slug) + "#reviews")
+
+
+@main_bp.route("/product/<slug>/review/delete", methods=["POST"])
+@login_required
+def delete_review(slug):
+    product = Product.query.filter_by(slug=slug).first_or_404()
+    review = Review.query.filter_by(product_id=product.id, user_id=current_user.id).first()
+    if review:
+        db.session.delete(review)
+        db.session.commit()
+        flash("Your review has been removed.", "info")
+    return redirect(url_for("main.product_detail", slug=slug) + "#reviews")
 
 
 @main_bp.route("/account")
 @login_required
 def account():
     addresses = Address.query.filter_by(user_id=current_user.id).all()
-    return render_template("account.html", addresses=addresses)
+    return render_template(
+        "account.html", addresses=addresses, countries=COUNTRIES, provinces=PAKISTAN_PROVINCES
+    )
+
+
+@main_bp.route("/welcome/address", methods=["GET", "POST"])
+@login_required
+def onboarding_address():
+    """Shown right after registration — a delivery address is required before continuing."""
+    if request.method == "POST":
+        full_name = request.form.get("full_name", "").strip()
+        phone = request.form.get("phone", "").strip()
+        address_line = request.form.get("address_line", "").strip()
+        city = request.form.get("city", "").strip()
+        province = request.form.get("province", "").strip()
+        country = request.form.get("country", "").strip()
+
+        if not all([full_name, phone, address_line, city, province, country]):
+            flash("Please fill in every field so we know where to deliver your orders.", "error")
+            return render_template(
+                "onboarding_address.html",
+                full_name=full_name, phone=phone, address_line=address_line,
+                city=city, province=province, country=country,
+                countries=COUNTRIES, provinces=PAKISTAN_PROVINCES,
+            )
+
+        address = Address(
+            user_id=current_user.id,
+            full_name=full_name,
+            phone=phone,
+            address_line=address_line,
+            city=city,
+            province=province,
+            country=country,
+            is_default=True,
+        )
+        db.session.add(address)
+        db.session.commit()
+        flash("You're all set! Your delivery address has been saved.", "success")
+        return redirect(url_for("main.home"))
+
+    return render_template(
+        "onboarding_address.html", full_name=current_user.name,
+        countries=COUNTRIES, provinces=PAKISTAN_PROVINCES,
+    )
 
 
 @main_bp.route("/account/addresses/add", methods=["POST"])
@@ -100,10 +195,12 @@ def add_address():
     phone = request.form.get("phone", "").strip()
     address_line = request.form.get("address_line", "").strip()
     city = request.form.get("city", "").strip()
+    province = request.form.get("province", "").strip()
+    country = request.form.get("country", "").strip()
     make_default = bool(request.form.get("is_default"))
 
-    if not all([full_name, phone, address_line, city]):
-        flash("Please fill in every address field.", "error")
+    if not all([full_name, phone, address_line, city, province, country]):
+        flash("Please fill in every address field, including province and country.", "error")
         return redirect(request.referrer or url_for("main.account"))
 
     if make_default:
@@ -115,6 +212,8 @@ def add_address():
         phone=phone,
         address_line=address_line,
         city=city,
+        province=province,
+        country=country,
         is_default=make_default or Address.query.filter_by(user_id=current_user.id).count() == 0,
     )
     db.session.add(address)
@@ -168,10 +267,11 @@ def change_password():
         confirm_password = request.form.get("confirm_password", "")
 
         error = None
+        is_strong, strength_message = validate_password_strength(new_password)
         if not current_user.check_password(current_password):
             error = "Your current password is incorrect."
-        elif len(new_password) < 6:
-            error = "New password must be at least 6 characters."
+        elif not is_strong:
+            error = strength_message
         elif new_password != confirm_password:
             error = "New passwords do not match."
 

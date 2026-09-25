@@ -66,6 +66,8 @@ class Product(db.Model):
 
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
 
+    reviews = db.relationship("Review", backref="product", lazy=True, cascade="all, delete-orphan")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if not self.slug and self.name:
@@ -89,6 +91,27 @@ class Product(db.Model):
     @property
     def low_stock(self):
         return 0 < self.stock <= 5
+
+    @property
+    def review_count(self):
+        return len(self.reviews)
+
+    @property
+    def average_rating(self):
+        if not self.reviews:
+            return 0.0
+        return round(sum(r.rating for r in self.reviews) / len(self.reviews), 1)
+
+    @property
+    def rating_breakdown(self):
+        """{5: pct, 4: pct, 3: pct, 2: pct, 1: pct} — percentage of reviews at each star value."""
+        counts = {i: 0 for i in range(5, 0, -1)}
+        total = len(self.reviews)
+        if total == 0:
+            return counts
+        for r in self.reviews:
+            counts[r.rating] = counts.get(r.rating, 0) + 1
+        return {i: round(counts[i] / total * 100) for i in counts}
 
 
 class CartItem(db.Model):
@@ -122,6 +145,22 @@ class WishlistItem(db.Model):
     __table_args__ = (db.UniqueConstraint("user_id", "product_id", name="uq_wishlist_user_product"),)
 
 
+class Review(db.Model):
+    __tablename__ = "reviews"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    comment = db.Column(db.Text, default="")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = db.relationship("User")
+
+    __table_args__ = (db.UniqueConstraint("product_id", "user_id", name="uq_review_product_user"),)
+
+
 class Address(db.Model):
     __tablename__ = "addresses"
 
@@ -131,7 +170,15 @@ class Address(db.Model):
     phone = db.Column(db.String(30), nullable=False)
     address_line = db.Column(db.String(255), nullable=False)
     city = db.Column(db.String(100), nullable=False)
+    province = db.Column(db.String(100), nullable=False, default="")
+    country = db.Column(db.String(100), nullable=False, default="Pakistan")
     is_default = db.Column(db.Boolean, default=False)
+
+    @property
+    def location_line(self):
+        """City, Province, Country — skipping any that are blank."""
+        parts = [p for p in [self.city, self.province, self.country] if p]
+        return ", ".join(parts)
 
 
 ORDER_STATUSES = ["Pending", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"]

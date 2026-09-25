@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Reviews — Admin{% endblock %}
+{% block content %}
+<section class="section container">
+  <div class="admin-shell">
+    {% set active = 'reviews' %}
+    {% include "admin/_nav.html" %}
+
+    <div>
+      <div class="section-head"><h2>{{ icon('star', 20, 'icon icon-star') }}Reviews</h2></div>
+
+      {% if reviews %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Product</th><th>Customer</th><th>Rating</th><th>Comment</th><th>Date</th><th></th></tr></thead>
+            <tbody>
+              {% for r in reviews %}
+                <tr>
+                  <td>{{ r.product.name }}</td>
+                  <td>{{ r.user.name }}</td>
+                  <td>
+                    <span class="star-display star-display-sm">
+                      {% for i in range(1, 6) %}{{ icon('star', 13, 'icon icon-star ' ~ ('active' if i <= r.rating else '')) }}{% endfor %}
+                    </span>
+                  </td>
+                  <td style="max-width:280px;">{{ r.comment or '—' }}</td>
+                  <td>{{ r.created_at.strftime('%d %b %Y') }}</td>
+                  <td>
+                    <form action="{{ url_for('admin.review_delete', review_id=r.id) }}" method="post" onsubmit="return confirm('Delete this review?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-danger btn-small">{{ icon('trash', 14) }}Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          {{ icon('message', 40) }}
+          <h3>No reviews yet</h3>
+          <p>Customer reviews will show up here once they start coming in.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -15,7 +15,8 @@
               <input type="radio" name="address_id" value="{{ addr.id }}" {% if addr.is_default or loop.first %}checked{% endif %} style="margin-top:4px;">
               <span>
                 <strong>{{ addr.full_name }}</strong><br>
-                {{ addr.address_line }}, {{ addr.city }}<br>
+                {{ addr.address_line }}<br>
+                {{ addr.location_line }}<br>
                 {{ addr.phone }}
               </span>
             </label>

@@ -10,13 +10,6 @@
 </head>
 <body>
 
-  <div class="topbar">
-    <div class="container">
-      <span class="topbar-note">Cash on Delivery available nationwide</span>
-      <span class="topbar-note">{{ store_name }} — everyday shopping, sorted.</span>
-    </div>
-  </div>
-
   <header class="navbar">
     <div class="container">
       <a href="{{ url_for('main.home') }}" class="brand">{{ icon('shopping-bag', 22, 'icon brand-icon') }}MYY<span>SHOP</span></a>
@@ -63,7 +56,7 @@
           </div>
         {% else %}
           <a class="nav-link" href="{{ url_for('auth.login') }}">{{ icon('user', 16) }}Sign in</a>
-          <a class="nav-link btn btn-primary btn-small" href="{{ url_for('auth.register') }}">{{ icon('user-plus', 16) }}Create account</a>
+          <a class="text-white btn btn-primary btn-small" href="{{ url_for('auth.register') }}">{{ icon('user-plus', 16) }}Create account</a>
         {% endif %}
       </nav>
     </div>
@@ -190,6 +183,33 @@
         if (e.key === 'Escape') closeAlert();
       });
       okBtn.focus();
+    })();
+
+    // Live password requirements checklist
+    (function () {
+      var lists = document.querySelectorAll('.pw-requirements[data-target]');
+      lists.forEach(function (list) {
+        var input = document.getElementById(list.getAttribute('data-target'));
+        if (!input) return;
+
+        function update() {
+          var value = input.value || '';
+          var checks = {
+            length: value.length >= 8,
+            lower: /[a-z]/.test(value),
+            upper: /[A-Z]/.test(value),
+            number: /[0-9]/.test(value),
+            symbol: /[^A-Za-z0-9]/.test(value)
+          };
+          list.querySelectorAll('li[data-rule]').forEach(function (li) {
+            var rule = li.getAttribute('data-rule');
+            li.classList.toggle('met', !!checks[rule]);
+          });
+        }
+
+        input.addEventListener('input', update);
+        update();
+      });
     })();
   </script>
 

@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
 from app import db
-from app.models import Product, Category, Order, User, OrderItem, ORDER_STATUSES, slugify
+from app.models import Product, Category, Order, User, OrderItem, ORDER_STATUSES, slugify, Review
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -235,3 +235,24 @@ def update_order_status(order_number):
 def customer_list():
     customers = User.query.filter_by(is_admin=False).order_by(User.created_at.desc()).all()
     return render_template("admin/customers.html", customers=customers)
+
+
+# ---------------- Reviews ----------------
+
+@admin_bp.route("/reviews")
+@login_required
+@admin_required
+def review_list():
+    reviews = Review.query.order_by(Review.created_at.desc()).all()
+    return render_template("admin/reviews.html", reviews=reviews)
+
+
+@admin_bp.route("/reviews/<int:review_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def review_delete(review_id):
+    review = Review.query.get_or_404(review_id)
+    db.session.delete(review)
+    db.session.commit()
+    flash("Review removed.", "info")
+    return redirect(url_for("admin.review_list"))

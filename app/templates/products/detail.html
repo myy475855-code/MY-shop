@@ -16,6 +16,13 @@
       {% if product.category %}<span class="product-category">{{ product.category.name }}</span>{% endif %}
       <h1 style="font-size:2rem; margin-top:6px;">{{ product.name }}</h1>
 
+      {% if product.review_count %}
+        <a href="#reviews" class="star-display" style="text-decoration:none; margin-top:4px;">
+          {% for i in range(1, 6) %}{{ icon('star', 15, 'icon icon-star ' ~ ('active' if i <= product.average_rating|round(0) else '')) }}{% endfor %}
+          <span class="review-count-sm">{{ product.average_rating }} ({{ product.review_count }} review{{ 's' if product.review_count != 1 }})</span>
+        </a>
+      {% endif %}
+
       <div class="product-price-row" style="margin: 14px 0;">
         <span class="price" style="font-size:1.6rem;">{{ currency }}{{ '{:,.0f}'.format(product.current_price) }}</span>
         {% if product.sale_price %}<span class="price-strike">{{ currency }}{{ '{:,.0f}'.format(product.price) }}</span>{% endif %}
@@ -49,6 +56,74 @@
         <a href="{{ url_for('auth.login') }}" class="btn btn-primary" style="margin-top:20px;">{{ icon('user', 16) }}Sign in to buy</a>
       {% endif %}
     </div>
+  </div>
+
+  <div class="section-head" id="reviews" style="margin-top:56px;">
+    <h2>{{ icon('star', 20, 'icon icon-star') }}Ratings &amp; Reviews</h2>
+  </div>
+
+  <div class="reviews-summary">
+    <div class="reviews-avg">
+      <div class="reviews-avg-number">{{ product.average_rating if product.review_count else '0.0' }}</div>
+      <div class="star-display">
+        {% for i in range(1, 6) %}{{ icon('star', 18, 'icon icon-star ' ~ ('active' if i <= product.average_rating|round(0) else '')) }}{% endfor %}
+      </div>
+      <div class="reviews-count">{{ product.review_count }} review{{ 's' if product.review_count != 1 }}</div>
+    </div>
+    <div class="reviews-bars">
+      {% for stars, pct in product.rating_breakdown.items() %}
+        <div class="reviews-bar-row">
+          <span>{{ stars }} ★</span>
+          <div class="reviews-bar"><div class="reviews-bar-fill" style="width:{{ pct }}%;"></div></div>
+          <span>{{ pct }}%</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if current_user.is_authenticated %}
+    <div class="form-card wide" style="margin-top:24px;">
+      <h3>{{ icon('edit', 17) }}{{ 'Edit your review' if user_review else 'Write a review' }}</h3>
+      <form method="post" action="{{ url_for('main.submit_review', slug=product.slug) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="star-rating">
+          {% for i in range(5, 0, -1) %}
+            <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" {% if user_review and user_review.rating == i %}checked{% endif %} required>
+            <label for="star{{ i }}" title="{{ i }} star{{ 's' if i != 1 }}">{{ icon('star', 26, 'icon icon-star') }}</label>
+          {% endfor %}
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label for="comment">Your review (optional)</label>
+          <textarea id="comment" name="comment" rows="3" placeholder="What did you think of this product?">{{ user_review.comment if user_review else '' }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">{{ icon('check-circle', 16) }}{{ 'Update review' if user_review else 'Submit review' }}</button>
+      </form>
+    </div>
+    {% if user_review %}
+      <form action="{{ url_for('main.delete_review', slug=product.slug) }}" method="post" style="margin-top:10px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-ghost btn-small">{{ icon('trash', 14) }}Delete my review</button>
+      </form>
+    {% endif %}
+  {% else %}
+    <p style="margin-top:18px;"><a href="{{ url_for('auth.login') }}" style="color: var(--gold-deep); font-weight:600;">Sign in</a> to write a review.</p>
+  {% endif %}
+
+  <div class="review-list" style="margin-top:10px;">
+    {% for r in reviews %}
+      <div class="review-item">
+        <div class="review-item-head">
+          <strong>{{ r.user.name }}</strong>
+          <span class="star-display star-display-sm">
+            {% for i in range(1, 6) %}{{ icon('star', 13, 'icon icon-star ' ~ ('active' if i <= r.rating else '')) }}{% endfor %}
+          </span>
+          <span class="review-date">{{ r.created_at.strftime('%d %b %Y') }}</span>
+        </div>
+        {% if r.comment %}<p class="review-comment">{{ r.comment }}</p>{% endif %}
+      </div>
+    {% else %}
+      <p style="margin-top:16px;">No reviews yet — be the first to share your thoughts.</p>
+    {% endfor %}
   </div>
 
   {% if related %}

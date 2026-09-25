@@ -4,5 +4,6 @@
   <a href="{{ url_for('admin.category_list') }}" class="{{ 'active' if active == 'categories' }}">{{ icon('layers', 16) }}Categories</a>
   <a href="{{ url_for('admin.order_list') }}" class="{{ 'active' if active == 'orders' }}">{{ icon('package', 16) }}Orders</a>
   <a href="{{ url_for('admin.customer_list') }}" class="{{ 'active' if active == 'customers' }}">{{ icon('users', 16) }}Customers</a>
+  <a href="{{ url_for('admin.review_list') }}" class="{{ 'active' if active == 'reviews' }}">{{ icon('star', 16, 'icon icon-star') }}Reviews</a>
   <a href="{{ url_for('main.home') }}">{{ icon('arrow-right', 16) }}Back to store</a>
 </nav>

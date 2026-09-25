@@ -68,7 +68,7 @@ def send_order_confirmation_email(order):
         f"Shipping: {'Free' if float(order.shipping_fee) == 0 else currency + f'{float(order.shipping_fee):,.0f}'}\n"
         f"Total: {currency}{float(order.total):,.0f}\n\n"
         f"Payment method: {order.payment_method}\n"
-        f"Delivering to: {order.address.full_name}, {order.address.address_line}, {order.address.city}\n\n"
+        f"Delivering to: {order.address.full_name}, {order.address.address_line}, {order.address.location_line}\n\n"
         f"We'll let you know as your order moves through Confirmed, Processing, Shipped, and Delivered.\n\n"
         f"Thanks for shopping with {store_name}!\n"
     )

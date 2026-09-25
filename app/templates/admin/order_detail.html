@@ -28,7 +28,8 @@
           <h3 style="margin-top:24px;">{{ icon('map-pin', 17) }}Delivery address</h3>
           <p style="margin:0;">
             {{ order.address.full_name }}<br>
-            {{ order.address.address_line }}, {{ order.address.city }}<br>
+            {{ order.address.address_line }}<br>
+            {{ order.address.location_line }}<br>
             {{ order.address.phone }}
           </p>
         </div>
