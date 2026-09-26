@@ -41,18 +41,6 @@ export FLASK_APP=run.py          # Windows (PowerShell): $env:FLASK_APP="run.py"
 flask seed
 ```
 
-This creates all tables and seeds demo categories, 10 demo products, a few sample reviews, and two accounts:
-
-```
-Admin account
-email:    admin@myyshop.com
-password: Admin@123
-
-Demo customer account
-email:    demo.customer@myyshop.com
-password: Demo@1234
-```
-
 **Change or remove these accounts before deploying anywhere public.**
 
 ## 3. Email setup (password reset + order confirmations)
@@ -128,7 +116,6 @@ myy_shop/
 │       ├── css/style.css   # responsive layout, mobile nav, design tokens
 │       └── uploads/        # product images land here
 ├── config.py
-├── seed.py
 ├── run.py
 └── requirements.txt
 ```
@@ -164,11 +151,3 @@ Suggested order for the phases that follow, each layering onto this codebase:
 Each phase is additive — new models, blueprints, and templates alongside what's
 already here, so nothing in this MVP has to be thrown away.
 
-## 9. Notes on security before going live
-
-- Set a strong, random `SECRET_KEY` in `.env`
-- Switch `DATABASE_URL` to Postgres/MySQL for production (SQLite is fine for local dev)
-- Put this behind HTTPS and set `SESSION_COOKIE_SECURE = True`
-- Add `Flask-Limiter` for login rate limiting before exposing this publicly
-- Never commit your real `ANTHROPIC_API_KEY` — it only belongs in `.env` (already gitignored)
-- Never commit `.env` or the `*.db` file (already covered by `.gitignore`)
