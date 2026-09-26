@@ -1,15 +1,32 @@
 {% extends "base.html" %}
 {% block title %}{{ product.name }} — {{ store_name }}{% endblock %}
+{% block body_attrs %} data-product-slug="{{ product.slug }}"{% endblock %}
 {% block content %}
 <section class="section container">
   <div class="product-detail-grid">
-    <div class="product-thumb product-detail-thumb">
-      {% if product.image_filename %}
-        <img src="{{ url_for('static', filename='uploads/' ~ product.image_filename) }}" alt="{{ product.name }}">
-      {% else %}
-        <span class="placeholder">{{ product.name[:1] }}</span>
+    {% set gallery = product.gallery_filenames %}
+    <div class="product-gallery">
+      <div class="gallery-main">
+        {% if gallery %}
+          <img id="gallery-main-img" src="{{ url_for('static', filename='uploads/' ~ gallery[0]) }}" alt="{{ product.name }}">
+        {% else %}
+          <span class="placeholder">{{ product.name[:1] }}</span>
+        {% endif %}
+        {% if product.discount_percent > 0 %}<span class="badge">-{{ product.discount_percent }}%</span>{% endif %}
+        {% if gallery|length > 1 %}
+          <button type="button" class="gallery-nav gallery-prev" id="gallery-prev" aria-label="Previous photo">{{ icon('chevron-right', 20) }}</button>
+          <button type="button" class="gallery-nav gallery-next" id="gallery-next" aria-label="Next photo">{{ icon('chevron-right', 20) }}</button>
+        {% endif %}
+      </div>
+      {% if gallery|length > 1 %}
+        <div class="gallery-thumbs" id="gallery-thumbs">
+          {% for filename in gallery %}
+            <button type="button" class="gallery-thumb {% if loop.first %}active{% endif %}" data-src="{{ url_for('static', filename='uploads/' ~ filename) }}" aria-label="Photo {{ loop.index }}">
+              <img src="{{ url_for('static', filename='uploads/' ~ filename) }}" alt="{{ product.name }} photo {{ loop.index }}">
+            </button>
+          {% endfor %}
+        </div>
       {% endif %}
-      {% if product.discount_percent > 0 %}<span class="badge">-{{ product.discount_percent }}%</span>{% endif %}
     </div>
 
     <div>
@@ -135,4 +152,24 @@
     </div>
   {% endif %}
 </section>
+
+<script>
+  (function () {
+    var thumbs = Array.from(document.querySelectorAll('#gallery-thumbs .gallery-thumb'));
+    var mainImg = document.getElementById('gallery-main-img');
+    var prevBtn = document.getElementById('gallery-prev');
+    var nextBtn = document.getElementById('gallery-next');
+    if (!mainImg || thumbs.length === 0) return;
+
+    var current = 0;
+    function show(index) {
+      current = (index + thumbs.length) % thumbs.length;
+      mainImg.src = thumbs[current].getAttribute('data-src');
+      thumbs.forEach(function (t, i) { t.classList.toggle('active', i === current); });
+    }
+    thumbs.forEach(function (t, i) { t.addEventListener('click', function () { show(i); }); });
+    if (prevBtn) prevBtn.addEventListener('click', function () { show(current - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { show(current + 1); });
+  })();
+</script>
 {% endblock %}

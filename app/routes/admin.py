@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
 from app import db
-from app.models import Product, Category, Order, User, OrderItem, ORDER_STATUSES, slugify, Review
+from app.models import Product, ProductImage, Category, Order, User, OrderItem, ORDER_STATUSES, slugify, Review
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -29,13 +29,46 @@ def _save_product_image(file_storage):
     if not file_storage or not file_storage.filename:
         return None
     if not _allowed_image(file_storage.filename):
-        flash("Image must be png, jpg, jpeg, webp, or gif.", "error")
+        flash(f"Skipped \"{file_storage.filename}\": must be png, jpg, jpeg, webp, or gif.", "error")
         return None
 
     filename = secure_filename(file_storage.filename)
     unique_name = f"{os.urandom(4).hex()}_{filename}"
     file_storage.save(os.path.join(current_app.config["UPLOAD_FOLDER"], unique_name))
     return unique_name
+
+
+def _save_gallery_images(files, product, starting_position):
+    """Save up to (Product.MAX_IMAGES - starting_position) images as ProductImage rows.
+
+    Returns the number saved. Silently caps extras with a flash notice rather than
+    failing the whole form submission.
+    """
+    files = [f for f in (files or []) if f and f.filename]
+    if not files:
+        return 0
+
+    remaining_slots = max(0, Product.MAX_IMAGES - starting_position)
+    if len(files) > remaining_slots:
+        if remaining_slots == 0:
+            flash(f"This product already has {Product.MAX_IMAGES} photos — remove one before adding more.", "error")
+        else:
+            flash(
+                f"Only {remaining_slots} more photo(s) could be added "
+                f"({Product.MAX_IMAGES} max per product) — the rest were skipped.",
+                "info",
+            )
+        files = files[:remaining_slots]
+
+    position = starting_position
+    saved = 0
+    for file_storage in files:
+        saved_name = _save_product_image(file_storage)
+        if saved_name:
+            db.session.add(ProductImage(product_id=product.id, filename=saved_name, position=position))
+            position += 1
+            saved += 1
+    return saved
 
 
 @admin_bp.route("/")
@@ -90,7 +123,7 @@ def product_new():
 
         if not name or not price:
             flash("Name and price are required.", "error")
-            return render_template("admin/product_form.html", categories=categories, product=None)
+            return render_template("admin/product_form.html", categories=categories, product=None, max_images=Product.MAX_IMAGES)
 
         product = Product(
             name=name,
@@ -100,18 +133,18 @@ def product_new():
             category_id=int(category_id) if category_id else None,
             description=description,
         )
-
-        image_file = request.files.get("image")
-        saved_name = _save_product_image(image_file)
-        if saved_name:
-            product.image_filename = saved_name
-
         db.session.add(product)
+        db.session.flush()  # need product.id before attaching gallery images
+
+        _save_gallery_images(request.files.getlist("images"), product, starting_position=0)
+        if product.images:
+            product.image_filename = product.images[0].filename
+
         db.session.commit()
         flash(f"{product.name} added.", "success")
         return redirect(url_for("admin.product_list"))
 
-    return render_template("admin/product_form.html", categories=categories, product=None)
+    return render_template("admin/product_form.html", categories=categories, product=None, max_images=Product.MAX_IMAGES)
 
 
 @admin_bp.route("/products/<int:product_id>/edit", methods=["GET", "POST"])
@@ -132,16 +165,36 @@ def product_edit(product_id):
         product.description = request.form.get("description", "").strip()
         product.is_active = bool(request.form.get("is_active"))
 
-        image_file = request.files.get("image")
-        saved_name = _save_product_image(image_file)
-        if saved_name:
-            product.image_filename = saved_name
+        _save_gallery_images(request.files.getlist("images"), product, starting_position=len(product.images))
+        db.session.flush()
+        if not product.image_filename and product.images:
+            product.image_filename = product.images[0].filename
 
         db.session.commit()
         flash(f"{product.name} updated.", "success")
         return redirect(url_for("admin.product_list"))
 
-    return render_template("admin/product_form.html", categories=categories, product=product)
+    return render_template("admin/product_form.html", categories=categories, product=product, max_images=Product.MAX_IMAGES)
+
+
+@admin_bp.route("/products/<int:product_id>/images/<int:image_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def product_image_delete(product_id, image_id):
+    product = Product.query.get_or_404(product_id)
+    image = ProductImage.query.filter_by(id=image_id, product_id=product.id).first_or_404()
+
+    db.session.delete(image)
+    db.session.flush()
+
+    remaining = ProductImage.query.filter_by(product_id=product.id).order_by(ProductImage.position).all()
+    for index, img in enumerate(remaining):
+        img.position = index
+    product.image_filename = remaining[0].filename if remaining else None
+
+    db.session.commit()
+    flash("Photo removed.", "info")
+    return redirect(url_for("admin.product_edit", product_id=product.id))
 
 
 @admin_bp.route("/products/<int:product_id>/delete", methods=["POST"])

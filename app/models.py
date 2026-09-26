@@ -67,6 +67,12 @@ class Product(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
 
     reviews = db.relationship("Review", backref="product", lazy=True, cascade="all, delete-orphan")
+    images = db.relationship(
+        "ProductImage", backref="product", lazy=True, cascade="all, delete-orphan",
+        order_by="ProductImage.position",
+    )
+
+    MAX_IMAGES = 7
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -97,6 +103,15 @@ class Product(db.Model):
         return len(self.reviews)
 
     @property
+    def gallery_filenames(self):
+        """Ordered list of image filenames for the product-detail slider (falls back to the cover image)."""
+        if self.images:
+            return [img.filename for img in self.images]
+        if self.image_filename:
+            return [self.image_filename]
+        return []
+
+    @property
     def average_rating(self):
         if not self.reviews:
             return 0.0
@@ -112,6 +127,16 @@ class Product(db.Model):
         for r in self.reviews:
             counts[r.rating] = counts.get(r.rating, 0) + 1
         return {i: round(counts[i] / total * 100) for i in counts}
+
+
+class ProductImage(db.Model):
+    __tablename__ = "product_images"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    position = db.Column(db.Integer, default=0, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class CartItem(db.Model):

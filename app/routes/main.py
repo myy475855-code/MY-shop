@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from sqlalchemy import or_
 
@@ -8,6 +8,7 @@ from app import db
 from app.models import Product, Category, Address, WishlistItem, User, Review
 from app.password_policy import validate_password_strength
 from app.locations import COUNTRIES, PAKISTAN_PROVINCES
+from app.ai_assistant import ai_configured, build_system_prompt, ask_ai
 
 main_bp = Blueprint("main", __name__)
 
@@ -285,3 +286,49 @@ def change_password():
         return redirect(url_for("main.account"))
 
     return render_template("change_password.html")
+
+
+@main_bp.route("/ai/ask", methods=["POST"])
+def ai_ask():
+    if not ai_configured():
+        return jsonify({
+            "error": "The AI assistant isn't set up yet — add an ANTHROPIC_API_KEY in .env to enable it."
+        }), 503
+
+    data = request.get_json(silent=True) or {}
+    user_message = (data.get("message") or "").strip()
+    product_slug = data.get("product_slug")
+    raw_history = data.get("history") or []
+
+    if not user_message:
+        return jsonify({"error": "Please type a question first."}), 400
+    if len(user_message) > 500:
+        return jsonify({"error": "That question is a bit long — please shorten it to under 500 characters."}), 400
+
+    # Only trust well-formed turns, and cap how much history we forward.
+    clean_history = []
+    if isinstance(raw_history, list):
+        for turn in raw_history[-8:]:
+            if not isinstance(turn, dict):
+                continue
+            role = turn.get("role")
+            content = str(turn.get("content", ""))[:1000]
+            if role in ("user", "assistant") and content:
+                clean_history.append({"role": role, "content": content})
+
+    product = None
+    if product_slug:
+        product = Product.query.filter_by(slug=product_slug, is_active=True).first()
+
+    system_prompt = build_system_prompt(product)
+    messages = clean_history + [{"role": "user", "content": user_message}]
+
+    try:
+        answer = ask_ai(system_prompt, messages)
+    except Exception:
+        current_app.logger.exception("AI assistant request failed")
+        return jsonify({
+            "error": "Sorry, the assistant is having trouble right now. Please try again in a moment."
+        }), 502
+
+    return jsonify({"answer": answer})

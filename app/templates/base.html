@@ -3,12 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}{{ store_name }}{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
+<body{% block body_attrs %}{% endblock %}>
+
+  <div class="topbar">
+    <div class="container">
+      <span class="topbar-note">Cash on Delivery available nationwide</span>
+      <span class="topbar-note">{{ store_name }} — everyday shopping, sorted.</span>
+    </div>
+  </div>
 
   <header class="navbar">
     <div class="container">
@@ -56,7 +64,7 @@
           </div>
         {% else %}
           <a class="nav-link" href="{{ url_for('auth.login') }}">{{ icon('user', 16) }}Sign in</a>
-          <a class="text-white btn btn-primary btn-small" href="{{ url_for('auth.register') }}">{{ icon('user-plus', 16) }}Create account</a>
+          <a class="nav-link btn btn-primary btn-small" href="{{ url_for('auth.register') }}">{{ icon('user-plus', 16) }}Create account</a>
         {% endif %}
       </nav>
     </div>
@@ -104,6 +112,24 @@
       <span style="display:inline-flex; align-items:center; gap:6px;">{{ icon('truck', 15) }}Cash on Delivery · Free shipping over {{ currency }}{{ '{:,.0f}'.format(free_shipping_threshold()) }}</span>
     </div>
   </footer>
+
+  <button type="button" class="ai-fab" id="ai-fab" aria-label="Ask the shopping assistant">
+    {{ icon('sparkles', 22, 'icon icon-fill') }}
+  </button>
+
+  <div class="ai-panel" id="ai-panel" aria-hidden="true">
+    <div class="ai-panel-header">
+      <span>{{ icon('sparkles', 16, 'icon icon-fill') }}MYY SHOP Assistant</span>
+      <button type="button" class="ai-close" id="ai-close" aria-label="Close chat">{{ icon('x', 16) }}</button>
+    </div>
+    <div class="ai-messages" id="ai-messages">
+      <div class="ai-msg ai-msg-bot">Hi! Ask me about this store, or about whichever product you're viewing.</div>
+    </div>
+    <form class="ai-input-row" id="ai-form">
+      <input type="text" id="ai-input" placeholder="Ask a question..." autocomplete="off" maxlength="500">
+      <button type="submit" class="ai-send" id="ai-send" aria-label="Send">{{ icon('send', 16) }}</button>
+    </form>
+  </div>
 
   <script>
     (function () {
@@ -209,6 +235,89 @@
 
         input.addEventListener('input', update);
         update();
+      });
+    })();
+
+    // AI shopping assistant widget
+    (function () {
+      var fab = document.getElementById('ai-fab');
+      var panel = document.getElementById('ai-panel');
+      var closeBtn = document.getElementById('ai-close');
+      var form = document.getElementById('ai-form');
+      var input = document.getElementById('ai-input');
+      var sendBtn = document.getElementById('ai-send');
+      var messagesEl = document.getElementById('ai-messages');
+      if (!fab || !panel || !form) return;
+
+      var history = [];
+      var productSlug = document.body.getAttribute('data-product-slug') || null;
+      var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+      function togglePanel(open) {
+        panel.classList.toggle('open', open);
+        panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (open) input.focus();
+      }
+
+      fab.addEventListener('click', function () {
+        togglePanel(!panel.classList.contains('open'));
+      });
+      closeBtn.addEventListener('click', function () { togglePanel(false); });
+
+      function addMessage(role, text) {
+        var div = document.createElement('div');
+        div.className = 'ai-msg ' + (role === 'user' ? 'ai-msg-user' : 'ai-msg-bot');
+        div.textContent = text;
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return div;
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var question = input.value.trim();
+        if (!question) return;
+
+        addMessage('user', question);
+        history.push({ role: 'user', content: question });
+        input.value = '';
+        input.disabled = true;
+        sendBtn.disabled = true;
+
+        var typing = addMessage('bot', 'Thinking…');
+        typing.classList.add('ai-msg-typing');
+
+        fetch('/ai/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+          body: JSON.stringify({
+            message: question,
+            history: history.slice(-8),
+            product_slug: productSlug
+          })
+        })
+          .then(function (res) {
+            return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+          })
+          .then(function (result) {
+            typing.remove();
+            if (result.ok && result.data.answer) {
+              addMessage('bot', result.data.answer);
+              history.push({ role: 'assistant', content: result.data.answer });
+            } else {
+              addMessage('bot', (result.data && result.data.error) || 'Sorry, something went wrong.');
+            }
+          })
+          .catch(function () {
+            typing.remove();
+            addMessage('bot', "Sorry, I couldn't reach the assistant. Please try again.");
+          })
+          .finally(function () {
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.focus();
+          });
       });
     })();
   </script>

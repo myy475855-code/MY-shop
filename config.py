@@ -41,3 +41,9 @@ class Config:
 
     # Password reset links expire after this many seconds (1 hour)
     RESET_TOKEN_MAX_AGE = 3600
+
+    # "Ask AI" shopping assistant (optional). Leave ANTHROPIC_API_KEY blank to
+    # disable it gracefully — the chat widget will explain it isn't configured
+    # yet instead of erroring.
+    ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY") or None
+    ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022")

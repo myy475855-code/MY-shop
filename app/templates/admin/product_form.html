@@ -49,11 +49,37 @@
           <textarea id="description" name="description" rows="4">{{ product.description if product else '' }}</textarea>
         </div>
 
+        {% if product and product.images %}
+          <div class="field">
+            <label>Current photos ({{ product.images|length }}/{{ max_images }})</label>
+            <div class="gallery-manage">
+              {% for img in product.images %}
+                <div class="gallery-manage-item">
+                  <img src="{{ url_for('static', filename='uploads/' ~ img.filename) }}" alt="Photo {{ loop.index }}">
+                  {% if loop.first %}<span class="status-pill status-Delivered gallery-cover-badge">Cover</span>{% endif %}
+                  <button type="submit" form="delete-image-{{ img.id }}" class="btn btn-danger btn-small gallery-manage-delete" aria-label="Remove this photo">{{ icon('trash', 13) }}</button>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
         <div class="field">
-          <label for="image">Product image</label>
-          <input type="file" id="image" name="image" accept="image/*">
-          {% if product and product.image_filename %}
-            <div class="field-hint">Current image: {{ product.image_filename }}</div>
+          <label for="images">
+            {% if product and product.images %}Add more photos{% else %}Product photos{% endif %}
+          </label>
+          {% set remaining = max_images - (product.images|length if product else 0) %}
+          {% if not product or remaining > 0 %}
+            <input type="file" id="images" name="images" accept="image/*" multiple>
+            <div class="field-hint">
+              {% if product and product.images %}
+                Up to {{ remaining }} more (7 total per product). The first photo overall is used as the cover image.
+              {% else %}
+                Up to 7 photos. The first one becomes the cover image shown in listings.
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="field-hint">This product already has the maximum of 7 photos — remove one above to add another.</div>
           {% endif %}
         </div>
 
@@ -67,6 +93,14 @@
         <button type="submit" class="btn btn-primary">{{ 'Save changes' if product else 'Add product' }}</button>
         <a href="{{ url_for('admin.product_list') }}" class="btn btn-ghost">Cancel</a>
       </form>
+
+      {% if product and product.images %}
+        {% for img in product.images %}
+          <form id="delete-image-{{ img.id }}" action="{{ url_for('admin.product_image_delete', product_id=product.id, image_id=img.id) }}" method="post" onsubmit="return confirm('Remove this photo?');" style="display:none;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          </form>
+        {% endfor %}
+      {% endif %}
     </div>
   </div>
 </section>
